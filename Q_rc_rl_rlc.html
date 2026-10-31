@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz - Circuits RC, RL et RLC libres</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- KaTeX pour le rendu des formules mathématiques -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-full flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-800 antialiased">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-sky-100 text-sky-700 rounded-lg">
+          <i class="fa-solid fa-bolt text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 text-lg leading-tight">Quiz : Circuits RC, RL et RLC</h1>
+          <p class="text-xs text-slate-500 font-medium">Dipôles et oscillations libres</p>
+        </div>
+      </div>
+      <div class="bg-slate-100 border border-slate-200 rounded-full px-3 py-1 text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+        <i class="fa-solid fa-graduation-cap text-sky-600"></i>
+        <span>Terminale</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-3xl w-full mx-auto px-4 py-6 md:py-10 flex-grow flex flex-col justify-center">
+
+    <!-- Screen 1: Quiz -->
+    <div id="quiz-screen" class="space-y-6">
+      
+      <!-- Progress Bar & Score -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex justify-between items-center text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <span id="question-number">Question 1 / 10</span>
+          <span id="score-counter" class="text-sky-700 font-bold bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">Score: 0</span>
+        </div>
+        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200/60">
+          <div id="progress-bar" class="bg-sky-500 h-full w-[10%] transition-all duration-300 ease-out rounded-full"></div>
+        </div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+        <div class="space-y-2">
+          <span id="question-tag" class="inline-block text-xs font-semibold text-sky-700 bg-sky-50 border border-sky-200/80 px-2.5 py-1 rounded-md">
+            Électricité
+          </span>
+          <h2 id="question-text" class="text-lg md:text-xl font-bold text-slate-900 leading-snug"></h2>
+        </div>
+
+        <!-- Options Container -->
+        <div id="options-container" class="space-y-3"></div>
+
+        <!-- Feedback & Explanation Box -->
+        <div id="feedback-box" class="hidden p-4 rounded-xl border transition-all duration-200 space-y-2">
+          <div class="flex items-center gap-2 font-bold text-sm" id="feedback-title"></div>
+          <p id="feedback-text" class="text-sm text-slate-600 leading-relaxed"></p>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="flex justify-between items-center pt-2">
+        <button id="prev-btn" onclick="prevQuestion()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-medium text-sm transition flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm" disabled>
+          <i class="fa-solid fa-arrow-left text-xs"></i> Précédent
+        </button>
+        <button id="next-btn" onclick="nextQuestion()" class="px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm transition shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+          <span>Suivant</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Screen 2: Results -->
+    <div id="results-screen" class="hidden bg-white border border-slate-200 rounded-2xl p-8 shadow-sm text-center space-y-6 max-w-xl mx-auto my-auto">
+      <div class="inline-flex p-4 bg-sky-50 border border-sky-100 rounded-full text-sky-600 mb-2">
+        <i class="fa-solid fa-trophy text-4xl"></i>
+      </div>
+      
+      <div class="space-y-2">
+        <h2 class="text-2xl font-bold text-slate-900">Quiz Terminé !</h2>
+        <p class="text-sm text-slate-500">Résultats du test sur les circuits RC, RL et RLC :</p>
+      </div>
+
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 space-y-2">
+        <div class="text-5xl font-black text-sky-600" id="final-score">0 / 10</div>
+        <p class="text-sm font-medium text-slate-600" id="final-percentage">0% de bonnes réponses</p>
+      </div>
+
+      <div id="final-message" class="p-4 rounded-xl text-sm font-medium border"></div>
+
+      <div class="pt-4 flex justify-center">
+        <button onclick="restartQuiz()" class="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl transition shadow-sm flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rotate-right text-sm"></i>
+          <span>Recommencer le Quiz</span>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
+    Quiz de Physique &bull; Terminale
+  </footer>
+
+  <script>
+    const quizData = [
+      {
+        id: 1,
+        tag: "Circuit RC - Constante de temps",
+        question: "Dans un circuit \\(RC\\) série, l'expression de la constante de temps \\(\\tau\\) est :",
+        options: [
+          { label: "a", text: "\\(\\tau = R \\cdot C\\)", isCorrect: true },
+          { label: "b", text: "\\(\\tau = \\frac{R}{C}\\)", isCorrect: false },
+          { label: "c", text: "\\(\\tau = \\frac{C}{R}\\)", isCorrect: false }
+        ],
+        explanation: "La constante de temps d'un dipôle \\(RC\\) est le produit de la résistance \\(R\\) (en ohms) par la capacité \\(C\\) du condensateur (en farads). Son unité est la seconde."
+      },
+      {
+        id: 2,
+        tag: "Circuit RC - Charge du condensateur",
+        question: "Lors de la charge d'un condensateur à travers une résistance, la tension \\(u_C(t)\\) à l'instant \\(t = \\tau\\) atteint environ :",
+        options: [
+          { label: "a", text: "37 % de sa valeur maximale", isCorrect: false },
+          { label: "b", text: "63 % de sa valeur maximale", isCorrect: true },
+          { label: "c", text: "100 % de sa valeur maximale", isCorrect: false }
+        ],
+        explanation: "Au bout d'une durée \\(t = \\tau\\), la tension aux bornes du condensateur en charge atteint \\(E(1 - e^{-1}) \\approx 0{,}63 E\\), soit 63% de sa valeur finale."
+      },
+      {
+        id: 3,
+        tag: "Circuit RL - Établissement du courant",
+        question: "Dans un circuit \\(RL\\) série soumis à un échelon de tension, la constante de temps \\(\\tau\\) de la bobine (d'inductance \\(L\\) et de résistance totale \\(r\\)) vaut :",
+        options: [
+          { label: "a", text: "\\(\\tau = L \\cdot r\\)", isCorrect: false },
+          { label: "b", text: "\\(\\tau = \\frac{L}{r}\\) (ou \\(L/R\\) si la bobine est idéale)", isCorrect: true },
+          { label: "c", text: "\\(\\tau = \\sqrt{L \\cdot r}\\)", isCorrect: false }
+        ],
+        explanation: "Pour un dipôle \\(RL\\), la constante de temps caractéristique de l'établissement ou de la rupture du courant est le rapport de l'inductance \\(L\\) sur la résistance totale \\(r\\) du circuit."
+      },
+      {
+        id: 4,
+        tag: "Circuit RL - Comportement de la bobine",
+        question: "Juste après la fermeture de l'interrupteur dans un circuit \\(RL\\) (établissement du courant), l'intensité \\(i(t)\\) du courant traversant la bobine :",
+        options: [
+          { label: "a", text: "s'établit instantanément à sa valeur maximale", isCorrect: false },
+          { label: "b", text: "est nulle ( \\(i(0) = 0\\) )", isCorrect: true },
+          { label: "c", text: "oscille de façon périodique", isCorrect: false }
+        ],
+        explanation: "En raison de la propriété d'inertie électrique de la bobine (phénomène d'auto-induction), l'intensité du courant ne peut pas être discontinue : elle est nulle à \\(t = 0\\) et augmente progressivement."
+      },
+      {
+        id: 5,
+        tag: "Circuit RLC - Régimes d'oscillations",
+        question: "Un circuit \\(RLC\\) série présente des oscillations pseudo-périodiques lorsque :",
+        options: [
+          { label: "a", text: "la résistance totale du circuit est nulle", isCorrect: false },
+          { label: "b", text: "la résistance totale du circuit est faible (amortissement faible)", isCorrect: true },
+          { label: "c", text: "la résistance totale est très élevée (régime apériodique)", isCorrect: false }
+        ],
+        explanation: "Si la résistance totale du circuit est faible, l'énergie du système se dissipe lentement par effet Joule, ce qui engendre des oscillations amortissables (pseudo-périodiques)."
+      },
+      {
+        id: 6,
+        tag: "Circuit RLC - Amortissement",
+        question: "Le régime périodique (oscillations non amorties) dans un circuit \\(RLC\\) idéal est obtenu si la résistance totale \\(R_{tot}\\) du circuit est :",
+        options: [
+          { label: "a", text: "nulle \\((R_{tot} = 0)\\)", isCorrect: true },
+          { label: "b", text: "infinie", isCorrect: false },
+          { label: "c", text: "égale à \\(\\sqrt{L/C}\\)", isCorrect: false }
+        ],
+        explanation: "Pour obtenir des oscillations purement périodiques (sans amortissement d'amplitude), il faut annuler les pertes d'énergie, soit une résistance totale nulle (impossible en pratique sans dispositif d'entretien des oscillations)."
+      },
+      {
+        id: 7,
+        tag: "Circuit RLC - Pseudo-période",
+        question: "Dans le cas d'un régime pseudo-périodique, la pseudo-période \\(T\\) des oscillations est généralement considérée comme :",
+        options: [
+          { label: "a", text: "très supérieure à la période propre \\(T_0\\) du circuit", isCorrect: false },
+          { label: "b", text: "sensiblement égale à la période propre \\(T_0 = 2\\pi\\sqrt{L \\cdot C}\\) si l'amortissement est faible", isCorrect: true },
+          { label: "c", text: "totalement indépendante de la capacité \\(C\\)", isCorrect: false }
+        ],
+        explanation: "Lorsque l'amortissement est faible (résistance petite), la pseudo-période \\(T\\) mesurée est très proche de la période propre \\(T_0 = 2\\pi\\sqrt{LC}\\) de l'oscillateur harmonique non amorti."
+      },
+      {
+        id: 8,
+        tag: "Énergétique - Condensateur",
+        question: "L'expression de l'énergie électrique \\(E_C\\) emmagasinée par un condensateur de capacité \\(C\\) sous une tension \\(u_C\\) est :",
+        options: [
+          { label: "a", text: "\\(E_C = \\frac{1}{2} C \\cdot u_C^2\\)", isCorrect: true },
+          { label: "b", text: "\\(E_C = C \\cdot u_C\\)", isCorrect: false },
+          { label: "c", text: "\\(E_C = \\frac{1}{2} \\frac{u_C^2}{C}\\)", isCorrect: false }
+        ],
+        explanation: "L'énergie emmagasinée électrostatiquement dans un condensateur est donnée par la relation \\(E_C = \\frac{1}{2} C u_C^2\\) (exprimée en Joules)."
+      },
+      {
+        id: 9,
+        tag: "Énergétique - Bobine",
+        question: "L'expression de l'énergie magnétique \\(E_L\\) emmagasinée par une bobine d'inductance \\(l\\) parcourue par un courant d'intensité \\(i\\) est :",
+        options: [
+          { label: "a", text: "\\(E_L = L \\cdot i\\)", isCorrect: false },
+          { label: "b", text: "\\(E_L = \\frac{1}{2} L \\cdot i^2\\)", isCorrect: true },
+          { label: "c", text: "\\(E_L = \\frac{1}{2} \\frac{i^2}{L}\\)", isCorrect: false }
+        ],
+        explanation: "L'énergie emmagasinée sous forme magnétique dans une bobine s'exprime par \\(E_L = \\frac{1}{2} L i^2\\)."
+      },
+      {
+        id: 10,
+        tag: "Bilan énergétique RLC",
+        question: "Au cours des oscillations libres d'un circuit \\(RLC\\) réel, l'énergie totale \\(E = E_C + E_L\\) du circuit :",
+        options: [
+          { label: "a", text: "se conserve au cours du temps", isCorrect: false },
+          { label: "b", text: "décroît au cours du temps en raison des pertes par effet Joule dans la résistance", isCorrect: true },
+          { label: "c", text: "augmente continuellement grâce à l'inductance", isCorrect: false }
+        ],
+        explanation: "Dans un circuit \\(RLC\\) réel, la présence d'une résistance entraîne une dissipation d'énergie thermique par effet Joule, ce qui provoque la diminution progressive de l'énergie totale \\(E\\) du système."
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let userAnswers = new Array(quizData.length).fill(null);
+    let score = 0;
+
+    function renderQuestion() {
+      const q = quizData[currentQuestionIndex];
+      
+      document.getElementById('question-number').innerText = `Question ${currentQuestionIndex + 1} / ${quizData.length}`;
+      document.getElementById('score-counter').innerText = `Score: ${score}`;
+      document.getElementById('progress-bar').style.width = `${((currentQuestionIndex + 1) / quizData.length) * 100}%`;
+
+      document.getElementById('question-tag').innerText = q.tag;
+      document.getElementById('question-text').innerHTML = `${q.id}/ ${q.question}`;
+
+      const container = document.getElementById('options-container');
+      container.innerHTML = '';
+
+      const selectedIdx = userAnswers[currentQuestionIndex];
+      const hasAnswered = selectedIdx !== null;
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.onclick = () => selectOption(idx);
+        
+        let baseStyle = "w-full text-left p-4 rounded-xl border text-sm font-medium transition flex items-center justify-between group shadow-sm ";
+        
+        if (!hasAnswered) {
+          baseStyle += "border-slate-200 hover:border-sky-400 bg-white hover:bg-sky-50/30 text-slate-700";
+        } else {
+          if (opt.isCorrect) {
+            baseStyle += "border-sky-500 bg-sky-50 text-sky-900 font-semibold ring-1 ring-sky-500";
+          } else if (idx === selectedIdx && !opt.isCorrect) {
+            baseStyle += "border-rose-400 bg-rose-50 text-rose-900";
+          } else {
+            baseStyle += "border-slate-200 bg-slate-50 text-slate-400 opacity-60";
+          }
+        }
+
+        btn.className = baseStyle;
+        btn.disabled = hasAnswered;
+
+        let iconHTML = '';
+        if (hasAnswered) {
+          if (opt.isCorrect) {
+            iconHTML = `<i class="fa-solid fa-circle-check text-sky-600 text-lg"></i>`;
+          } else if (idx === selectedIdx && !opt.isCorrect) {
+            iconHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 text-lg"></i>`;
+          }
+        } else {
+          iconHTML = `<span class="w-5 h-5 rounded-full border border-slate-300 group-hover:border-sky-500 flex items-center justify-center text-xs text-transparent group-hover:text-sky-500">✓</span>`;
+        }
+
+        btn.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-sky-100 group-hover:text-sky-700 flex items-center justify-center text-xs font-bold text-slate-600 uppercase border border-slate-200/60 transition">
+              ${opt.label}
+            </span>
+            <span class="leading-relaxed">${opt.text}</span>
+          </div>
+          <div>${iconHTML}</div>
+        `;
+
+        container.appendChild(btn);
+      });
+
+      const feedbackBox = document.getElementById('feedback-box');
+      if (hasAnswered) {
+        feedbackBox.classList.remove('hidden');
+        const isUserCorrect = q.options[selectedIdx].isCorrect;
+
+        const titleEl = document.getElementById('feedback-title');
+        const textEl = document.getElementById('feedback-text');
+
+        if (isUserCorrect) {
+          feedbackBox.className = "p-4 rounded-xl border bg-sky-50 border-sky-200 text-sky-900 space-y-1.5";
+          titleEl.className = "flex items-center gap-2 font-bold text-sm text-sky-800";
+          titleEl.innerHTML = `<i class="fa-solid fa-circle-check text-sky-600"></i> Bonne réponse !`;
+        } else {
+          feedbackBox.className = "p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 space-y-1.5";
+          titleEl.className = "flex items-center gap-2 font-bold text-sm text-rose-800";
+          titleEl.innerHTML = `<i class="fa-solid fa-circle-exclamation text-rose-600"></i> Réponse incorrecte`;
+        }
+
+        textEl.innerHTML = q.explanation;
+      } else {
+        feedbackBox.classList.add('hidden');
+      }
+
+      document.getElementById('prev-btn').disabled = currentQuestionIndex === 0;
+      
+      const nextBtn = document.getElementById('next-btn');
+      if (currentQuestionIndex === quizData.length - 1) {
+        nextBtn.innerHTML = `<span>Voir les résultats</span> <i class="fa-solid fa-flag-checkered text-xs"></i>`;
+      } else {
+        nextBtn.innerHTML = `<span>Suivant</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
+      }
+
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "\\(", right: "\\)", display: false},
+            {left: "\\[", right: "\\]", display: true}
+          ]
+        });
+      }
+    }
+
+    function selectOption(index) {
+      if (userAnswers[currentQuestionIndex] !== null) return;
+      
+      userAnswers[currentQuestionIndex] = index;
+      if (quizData[currentQuestionIndex].options[index].isCorrect) {
+        score++;
+      }
+      renderQuestion();
+    }
+
+    function nextQuestion() {
+      if (currentQuestionIndex < quizData.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function prevQuestion() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderQuestion();
+      }
+    }
+
+    function showResults() {
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('results-screen').classList.remove('hidden');
+
+    const percentage = Math.round((score / quizData.length) * 100);
+      document.getElementById('final-score').innerText = `${score} / ${quizData.length}`;
+      document.getElementById('final-percentage').innerText = `${percentage}% de réussite`;
+
+      const msgEl = document.getElementById('final-message');
+      if (percentage >= 80) {
+        msgEl.className = "p-4 rounded-xl text-sm font-medium border bg-sky-50 border-sky-200 text-sky-800";
+        msgEl.innerHTML = "🏆 <b>Excellent !</b> Vous maîtrisez parfaitement les régimes transitoires (RC, RL) et les oscillations libres (RLC).";
+      } else if (percentage >= 50) {
+        msgEl.className = "p-4 rounded-xl text-sm font-medium border bg-amber-50 border-amber-200 text-amber-800";
+        msgEl.innerHTML = "👍 <b>Bon travail !</b> Encore quelques révisions sur les bilans énergétiques et les régimes d'amortissement pour atteindre l'excellence.";
+      } else {
+        msgEl.className = "p-4 rounded-xl text-sm font-medium border bg-rose-50 border-rose-200 text-rose-800";
+        msgEl.innerHTML = "📚 <b>À réviser !</b> Reprenez les expressions des constantes de temps \\(\\tau\\) et les formes d'énergie \\(E_C\\) et \\(E_L\\).";
+      }
+
+      if (window.renderMathInElement) {
+        renderMathInElement(document.getElementById('results-screen'));
+      }
+    }
+
+    function restartQuiz() {
+      currentQuestionIndex = 0;
+      userAnswers = new Array(quizData.length).fill(null);
+      score = 0;
+      document.getElementById('results-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      renderQuestion();
+    }
+
+    renderQuestion();
+  </script>
+</body>
+</html>

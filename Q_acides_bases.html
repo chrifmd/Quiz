@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz : acides et bases</title>
+<style>
+:root{--bg:#f3f7f6;--card:#fff;--ink:#17302b;--mute:#5b736d;--line:#cfdcd8;--accent:#0f766e;--ok:#15803d;--okbg:#e3f5e9;--ko:#b91c1c;--kobg:#fde8e8}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1a18;--card:#162623;--ink:#e6f1ee;--mute:#9db5af;--line:#2c4540;--accent:#5eead4;--ok:#4ade80;--okbg:#12301f;--ko:#f87171;--kobg:#3a1717}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;line-height:1.55;padding:24px 16px}
+main{max-width:680px;margin:0 auto}
+h1{font-size:1.7rem;margin:0 0 4px}
+.sub{color:var(--mute);margin:0 0 20px;font-family:system-ui,sans-serif;font-size:.95rem}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.meta{font-family:system-ui,sans-serif;font-size:.85rem;color:var(--mute);margin-bottom:16px;display:flex;justify-content:space-between}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px}
+.q{font-size:1.2rem;margin:0 0 16px}
+.opt{display:block;width:100%;text-align:left;font:inherit;font-size:1rem;color:var(--ink);background:transparent;border:1.5px solid var(--line);border-radius:8px;padding:11px 14px;margin-bottom:10px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:focus-visible,.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.opt:disabled{cursor:default}
+.opt.ok{background:var(--okbg);border-color:var(--ok)}
+.opt.ko{background:var(--kobg);border-color:var(--ko)}
+.fb{display:none;font-family:system-ui,sans-serif;font-size:.93rem;border-left:4px solid var(--accent);padding:8px 12px;margin:14px 0;background:var(--bg);border-radius:0 6px 6px 0}
+.fb.show{display:block}
+.hint{font-family:system-ui,sans-serif;font-size:.88rem;color:var(--mute);margin:0 0 12px}
+.hint button{background:none;border:0;color:var(--accent);cursor:pointer;font:inherit;text-decoration:underline;padding:0}
+.btn{font-family:system-ui,sans-serif;font-size:1rem;background:var(--accent);color:var(--bg);border:0;border-radius:8px;padding:10px 20px;cursor:pointer;font-weight:600}
+.btn[hidden]{display:none}
+.score{font-size:3rem;margin:8px 0;color:var(--accent)}
+.rev{font-family:system-ui,sans-serif;font-size:.9rem;margin:16px 0 0;padding:0;list-style:none}
+.rev li{padding:6px 0;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<main>
+<h1>Acides et bases</h1>
+<p class="sub">Force des acides et des bases : Ka, Kb, pKa, pKb et pH</p>
+<div class="bar"><i id="bar"></i></div>
+<div class="meta"><span id="count"></span><span id="pts"></span></div>
+<div class="card" id="card"></div>
+</main>
+<script>
+const Q=[
+["Parmi ces acides (eau, 25 °C), lequel est le plus fort ?",["Ka = 1,8 × 10⁻⁵","Ka = 6,3 × 10⁻⁸","Ka = 4,0 × 10⁻³","Ka = 1,0 × 10⁻¹⁰"],2,"Plus Ka est grand, plus l'acide est dissocié, donc fort. 4,0 × 10⁻³ est la plus grande valeur.","Un acide fort cède facilement son proton : Ka élevé."],
+["Quelle est la relation entre pKa et Ka ?",["pKa = Ka","pKa = −log(Ka)","pKa = log(Ka)","pKa = 1/Ka"],1,"Par définition pKa = −log₁₀(Ka). Un Ka grand correspond à un pKa petit.","Même logique que pour le pH."],
+["Quel couple contient l'acide le plus fort ?",["CH₃COOH/CH₃COO⁻ (pKa 4,8)","HCOOH/HCOO⁻ (pKa 3,8)","NH₄⁺/NH₃ (pKa 9,2)","HClO/ClO⁻ (pKa 7,5)"],1,"Plus le pKa est faible, plus l'acide est fort. HCOOH (3,8) est le plus fort.","Cherchez le plus petit pKa."],
+["Quelle relation lie Ka et Kb d'un couple conjugué à 25 °C ?",["Ka + Kb = 14","Ka / Kb = 10⁻¹⁴","Ka × Kb = 10⁻¹⁴","Ka − Kb = 10⁻¹⁴"],2,"Ka × Kb = Ke = 10⁻¹⁴, soit pKa + pKb = 14.","Pensez au produit ionique de l'eau."],
+["Le pKa de NH₄⁺/NH₃ vaut 9,2. Quel est le pKb de NH₃ ?",["4,8","9,2","14,0","23,2"],0,"pKb = 14 − 9,2 = 4,8.","pKa + pKb = 14."],
+["Parmi ces bases, laquelle est la plus forte ?",["pKb = 3,3","pKb = 4,8","pKb = 9,2","pKb = 11,0"],0,"Plus le pKb est petit, plus Kb est grand et plus la base capte facilement un proton.","Prenez le plus petit pKb."],
+["Si un acide est très fort, que dire de sa base conjuguée ?",["Elle est aussi très forte","Elle est très faible (indifférente)","Elle n'existe pas","Elle a le même pKa"],1,"Les forces varient en sens inverse : Cl⁻, base conjuguée de HCl, est extrêmement faible.","Kb = Ke/Ka : si Ka est très grand, Kb est très petit."],
+["Acide faible HA, c = 0,10 mol/L, pKa = 4,8. pH approximatif?",["1,0","2,9","4,8","5,8"],1,"pH = ½(4,8 − log 0,10) = ½(4,8 + 1) = 2,9.","log(0,10) = −1."],
+["Si pH = pKa pour le couple HA/A⁻, que vaut [A⁻]/[HA] ?",["0,1","1","10","Ka"],1,"pH = pKa + log([A⁻]/[HA]). Si pH = pKa, le log vaut 0 : [A⁻] = [HA] (demi-équivalence).","Utilisez Henderson-Hasselbalch."],
+["Quelle espèce prédomine si pH > pKa ?",["HA (forme acide)","A⁻ (forme basique)","Les deux à égalité","Impossible à dire sans la concentration"],1,"Si pH > pKa, log([A⁻]/[HA]) > 0 donc [A⁻] > [HA] : la forme basique prédomine.","pH = pKa + log([A⁻]/[HA])."]
+];
+let i=0,score=0,answers=[];
+const $=id=>document.getElementById(id);
+function show(){
+  const [q,o,c,e,h]=Q[i];
+  $("count").textContent="Question "+(i+1)+" / "+Q.length;
+  $("pts").textContent="Score : "+score;
+  $("bar").style.width=(i/Q.length*100)+"%";
+  $("card").innerHTML='<p class="q"></p><p class="hint"><button type="button" id="hb">Afficher l’indice</button></p><div id="opts"></div><div class="fb" id="fb"></div><button class="btn" id="nx" hidden></button>';
+  $("card").querySelector(".q").textContent=q;
+  $("hb").onclick=()=>{$("hb").parentNode.textContent="Indice : "+h};
+  o.forEach((t,k)=>{const b=document.createElement("button");b.type="button";b.className="opt";b.textContent=t;b.onclick=()=>pick(k);$("opts").appendChild(b)});
+}
+function pick(k){
+  const [q,o,c,e]=Q[i];
+  const bs=[...$("opts").children];
+  bs.forEach((b,j)=>{b.disabled=true;if(j===c)b.classList.add("ok");else if(j===k)b.classList.add("ko")});
+  if(k===c)score++;
+  answers.push(k===c);
+  $("pts").textContent="Score : "+score;
+  const fb=$("fb");fb.textContent=(k===c?"Correct. ":"Pas tout à fait. ")+e;fb.classList.add("show");
+  const nx=$("nx");nx.hidden=false;nx.textContent=i===Q.length-1?"Voir le résultat":"Question suivante";
+  nx.onclick=()=>{i++;i<Q.length?show():end()};nx.focus();
+}
+function end(){
+  $("bar").style.width="100%";
+  $("count").textContent="Terminé";
+  const msg=score>=9?"Excellent !":score>=7?"Très bien.":score>=5?"Pas mal, à consolider.":"À revoir : relisez le cours sur Ka et pKa.";
+  $("card").innerHTML='<h2 style="margin:0">Résultat</h2><div class="score">'+score+' / '+Q.length+'</div><p>'+msg+'</p><ul class="rev">'+Q.map((x,k)=>'<li>'+(answers[k]?'✔':'✘')+' '+(k+1)+'. '+x[0]+'</li>').join("")+'</ul><p><button class="btn" id="rs">Recommencer</button></p>';
+  $("rs").onclick=()=>{i=0;score=0;answers=[];show()};
+}
+show();
+</script>
+</body>
+</html>

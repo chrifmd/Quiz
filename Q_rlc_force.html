@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz - Circuit RLC Forcé & Résonance</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- KaTeX pour le rendu des formules mathématiques -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-full flex flex-col justify-between selection:bg-indigo-100 selection:text-indigo-800 antialiased">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-indigo-100 text-indigo-700 rounded-lg">
+          <i class="fa-solid fa-wave-square text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 text-lg leading-tight">Quiz : Circuit RLC En Régime Forcé</h1>
+          <p class="text-xs text-slate-500 font-medium">Oscillations électriques forcées & Résonance</p>
+        </div>
+      </div>
+      <div class="bg-slate-100 border border-slate-200 rounded-full px-3 py-1 text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+        <i class="fa-solid fa-graduation-cap text-indigo-600"></i>
+        <span>Terminale</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-3xl w-full mx-auto px-4 py-6 md:py-10 flex-grow flex flex-col justify-center">
+
+    <!-- Screen 1: Quiz -->
+    <div id="quiz-screen" class="space-y-6">
+      
+      <!-- Progress Bar & Score -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex justify-between items-center text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <span id="question-number">Question 1 / 10</span>
+          <span id="score-counter" class="text-indigo-700 font-bold bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">Score: 0</span>
+        </div>
+        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200/60">
+          <div id="progress-bar" class="bg-indigo-500 h-full w-[10%] transition-all duration-300 ease-out rounded-full"></div>
+        </div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+        <div class="space-y-2">
+          <span id="question-tag" class="inline-block text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200/80 px-2.5 py-1 rounded-md">
+            Électricité
+          </span>
+          <h2 id="question-text" class="text-lg md:text-xl font-bold text-slate-900 leading-snug"></h2>
+        </div>
+
+        <!-- Options Container -->
+        <div id="options-container" class="space-y-3"></div>
+
+        <!-- Feedback & Explanation Box -->
+        <div id="feedback-box" class="hidden p-4 rounded-xl border transition-all duration-200 space-y-2">
+          <div class="flex items-center gap-2 font-bold text-sm" id="feedback-title"></div>
+          <p id="feedback-text" class="text-sm text-slate-600 leading-relaxed"></p>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="flex justify-between items-center pt-2">
+        <button id="prev-btn" onclick="prevQuestion()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-medium text-sm transition flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm" disabled>
+          <i class="fa-solid fa-arrow-left text-xs"></i> Précédent
+        </button>
+        <button id="next-btn" onclick="nextQuestion()" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+          <span>Suivant</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Screen 2: Results -->
+    <div id="results-screen" class="hidden bg-white border border-slate-200 rounded-2xl p-8 shadow-sm text-center space-y-6 max-w-xl mx-auto my-auto">
+      <div class="inline-flex p-4 bg-indigo-50 border border-indigo-100 rounded-full text-indigo-600 mb-2">
+        <i class="fa-solid fa-trophy text-4xl"></i>
+      </div>
+      
+      <div class="space-y-2">
+        <h2 class="text-2xl font-bold text-slate-900">Quiz Terminé !</h2>
+        <p class="text-sm text-slate-500">Résultats du test sur le circuit RLC en régime forcé :</p>
+      </div>
+
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 space-y-2">
+        <div class="text-5xl font-black text-indigo-600" id="final-score">0 / 10</div>
+        <p class="text-sm font-medium text-slate-600" id="final-percentage">0% de bonnes réponses</p>
+      </div>
+
+      <div id="final-message" class="p-4 rounded-xl text-sm font-medium border"></div>
+
+      <div class="pt-4 flex justify-center">
+        <button onclick="restartQuiz()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition shadow-sm flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rotate-right text-sm"></i>
+          <span>Recommencer le Quiz</span>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
+    Quiz de Physique &bull; Terminale
+  </footer>
+
+  <script>
+    const quizData = [
+      {
+        id: 1,
+        tag: "Rôle des éléments",
+        question: "Dans un circuit \\(RLC\\) série alimenté par un générateur basse fréquence (GBF) délivrant une tension sinusoïdale, le GBF joue le rôle de :",
+        options: [
+          { label: "a", text: "l'oscillateur propre (ou résonateur)", isCorrect: false },
+          { label: "b", text: "l'excitateur qui impose sa fréquence \\(N\\) (ou pulsation \\(\\omega\\)) au circuit", isCorrect: true },
+          { label: "c", text: "l'élément d'amortissement par effet Joule", isCorrect: false }
+        ],
+        explanation: "Le GBF est l'<b>excitateur</b> : il impose sa fréquence \\(N\\) au circuit. Le dipôle \\(RLC\\) constitue le <b>résonateur</b> qui oscille à la fréquence imposée par le générateur."
+      },
+      {
+        id: 2,
+        tag: "Impédance du circuit",
+        question: "L'expression de l'impédance \\(Z\\) d'un circuit \\(RLC\\) série en régime sinusoïdal forcé est :",
+        options: [
+          { label: "a", text: "\\(Z = R_{tot} + L\\omega - \\frac{1}{C\\omega}\\)", isCorrect: false },
+          { label: "b", text: "\\(Z = \\sqrt{R_{tot}^2 + \\left(L\\omega - \\frac{1}{C\\omega}\\right)^2}\\)", isCorrect: true },
+          { label: "c", text: "\\(Z = \\sqrt{R_{tot}^2 + L^2\\omega^2 + C^2\\omega^2}\\)", isCorrect: false }
+        ],
+        explanation: "D'après la construction de Fresnel, l'impédance totale du circuit série vaut \\(Z = \\sqrt{R_{tot}^2 + \\left(L\\omega - \\frac{1}{C\\omega}\\right)^2}\\)."
+      },
+      {
+        id: 3,
+        tag: "Résonance d'intensité - Condition",
+        question: "La résonance d'intensité dans un circuit \\(RLC\\) série est obtenue lorsque la pulsation \\(\\omega\\) de l'excitateur vérifie :",
+        options: [
+          { label: "a", text: "\\(L\\omega_0 = \\frac{1}{C\\omega_0}\\) (soit \\(\\omega_0 = \\frac{1}{\\sqrt{LC}}\\))", isCorrect: true },
+          { label: "b", text: "\\(R_{tot} = L\\omega\\)", isCorrect: false },
+          { label: "c", text: "\\(L C \\omega_0^2 = 0\\)", isCorrect: false }
+        ],
+        explanation: "À la résonance d'intensité, la réactance de la bobine compense exactement celle du condensateur (\\(L\\omega_0 = \\frac{1}{C\\omega_0}\\)), rendant la partie réactive nulle."
+      },
+      {
+        id: 4,
+        tag: "Résonance d'intensité - Impédance & Courant",
+        question: "À la résonance d'intensité, l'impédance \\(Z\\) du circuit et l'intensité efficace \\(I\\) prennent les valeurs suivantes :",
+        options: [
+          { label: "a", text: "\\(Z\\) est maximale et \\(I\\) est minimale", isCorrect: false },
+          { label: "b", text: "\\(Z = R_{tot}\\) (minimale) et \\(I_0 = \\frac{U}{R_{tot}}\\) (maximale)", isCorrect: true },
+          { label: "c", text: "\\(Z = 0\\) et \\(I\\) tend vers l'infini", isCorrect: false }
+        ],
+        explanation: "Puisque la partie réactive s'annule, l'impédance est minimale et purement résistive (\\(Z = R_{tot}\\)). Par conséquent, l'intensité efficace atteint son maximum \\(I_0 = U / R_{tot}\\)."
+      },
+      {
+        id: 5,
+        tag: "Déphasage tension/intensité",
+        question: "Le déphasage \\(\\Delta \\varphi = \\varphi_u - \\varphi_i\\) entre la tension d'alimentation \\(u(t)\\) et l'intensité \\(i(t)\\) à la résonance d'intensité vaut :",
+        options: [
+          { label: "a", text: "\\(\\Delta \\varphi = +\\frac{\\pi}{2}\\text{ rad}\\)", isCorrect: false },
+          { label: "b", text: "\\(\\Delta \\varphi = 0\\text{ rad}\\) (la tension et l'intensité sont en phase)", isCorrect: true },
+          { label: "c", text: "\\(\\Delta \\varphi = -\\frac{\\pi}{2}\\text{ rad}\\)", isCorrect: false }
+        ],
+        explanation: "À la résonance, la tension d'alimentation \\(u(t)\\) et l'intensité \\(i(t)\\) sont exactement en phase (\\(\\tan \\Delta \\varphi = 0 \\implies \\Delta \\varphi = 0\\))."
+      },
+      {
+        id: 6,
+        tag: "Comportement du circuit selon \\(\\omega\\)",
+        question: "Lorsque la fréquence \\(N < N_0\\) (pulsation \\(\\omega < \\omega_0\\)), le circuit \\(RLC\\) série a un comportement :",
+        options: [
+          { label: "a", text: "Capacitif (l'intensité est en avance de phase sur la tension, \\(\\Delta \\varphi < 0\\))", isCorrect: true },
+          { label: "b", text: "Inductif (l'intensité est en retard de phase sur la tension, \\(\\Delta \\varphi > 0\\))", isCorrect: false },
+          { label: "c", text: "Purement résistif", isCorrect: false }
+        ],
+        explanation: "Pour \\(\\omega < \\omega_0\\), le terme capacitif prédomine : \\(\\frac{1}{C\\omega} > L\\omega\\). Le terme \\(\\tan \\Delta \\varphi = \\frac{L\\omega - \\frac{1}{C\\omega}}{R_{tot}} < 0\\), donc le circuit est capacitif."
+      },
+      {
+        id: 7,
+        tag: "Facteur de qualité",
+        question: "Le coefficient de surtension \\(Q\\) (ou acuité de la résonance) d'un circuit \\(RLC\\) série est défini par :",
+        options: [
+          { label: "a", text: "\\(Q = \\frac{L \\omega_0}{R_{tot}} = \\frac{1}{R_{tot}}\\sqrt{\\frac{L}{C}}\\)", isCorrect: true },
+          { label: "b", text: "\\(Q = R_{tot} \\cdot C \\cdot \\omega_0\\)", isCorrect: false },
+          { label: "c", text: "\\(Q = \\frac{R_{tot}}{L \\omega_0}\\)", isCorrect: false }
+        ],
+        explanation: "Le coefficient de surtension \\(Q = \\frac{L\\omega_0}{R_{tot}} = \\frac{1}{C R_{tot} \\omega_0}\\) mesure la finesse de la courbe de résonance. Plus \\(R_{tot}\\) est faible, plus la résonance est aiguë."
+      },
+      {
+        id: 8,
+        tag: "Résonance de charge",
+        question: "La résonance de charge (ou de tension aux bornes du condensateur) se produit pour une pulsation \\(\\omega_r\\) qui vérifie :",
+        options: [
+          { label: "a", text: "\\(\\omega_r = \\omega_0\\) quelle que soit la valeur de la résistance \\(R_{tot}\\)", isCorrect: false },
+          { label: "b", text: "\\(\\omega_r = \\sqrt{\\omega_0^2 - \\frac{R_{tot}^2}{2L^2}} < \\omega_0\\), à condition que \\(Q > \\frac{1}{\\sqrt{2}}\\)", isCorrect: true },
+          { label: "c", text: "\\(\\omega_r = \\sqrt{\\omega_0^2 + \\frac{R_{tot}^2}{L^2}} > \\omega_0\\)", isCorrect: false }
+        ],
+        explanation: "Contrairement à la résonance d'intensité (qui a toujours lieu à \\(\\omega_0\\)), la résonance de charge se produit à une pulsation \\(\\omega_r < \\omega_0\\). Elle n'existe que si l'amortissement est faible (\\(Q > 1/\\sqrt{2}\\))."
+      },
+      {
+        id: 9,
+        tag: "Puissance électrique",
+        question: "La puissance moyenne \\(P_{moy}\\) consommée par le circuit \\(RLC\\) série s'exprime par :",
+        options: [
+          { label: "a", text: "\\(P_{moy} = U_{eff} \\cdot I_{eff}\\)", isCorrect: false },
+          { label: "b", text: "\\(P_{moy} = U_{eff} \\cdot I_{eff} \\cdot \\cos(\\Delta \\varphi) = R_{tot} \\cdot I_{eff}^2\\)", isCorrect: true },
+          { label: "c", text: "\\(P_{moy} = L \\cdot I_{eff}^2 \\cdot \\omega\\)", isCorrect: false }
+        ],
+        explanation: "Seule la résistance totale du circuit consomme de la puissance sous forme d'effet Joule (\\(P_{moy} = R_{tot} I_{eff}^2\\)). \\(\\cos(\\Delta \\varphi)\\) est appelé facteur de puissance."
+      },
+      {
+        id: 10,
+        tag: "Surtension aux bornes du condensateur",
+        question: "À la résonance d'intensité, si le facteur de qualité \\(Q > 1\\), la tension efficace aux bornes du condensateur \\(U_C\\) est :",
+        options: [
+          { label: "a", text: "Égale à la tension efficace d'alimentation \\(U\\)", isCorrect: false },
+          { label: "b", text: "Égale à \\(Q \\cdot U\\) (phénomène de surtension)", isCorrect: true },
+          { label: "c", text: "Nulle", isCorrect: false }
+        ],
+        explanation: "À la résonance, \\(U_C = \\frac{I_0}{C\\omega_0} = \\frac{U}{R_{tot} C \\omega_0} = Q \\cdot U\\). Si \\(Q > 1\\), il apparaît une surtension aux bornes du condensateur qui peut l'endommager."
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let userAnswers = new Array(quizData.length).fill(null);
+    let score = 0;
+
+    function renderQuestion() {
+      const q = quizData[currentQuestionIndex];
+      
+      document.getElementById('question-number').innerText = `Question ${currentQuestionIndex + 1} / ${quizData.length}`;
+      document.getElementById('score-counter').innerText = `Score: ${score}`;
+      document.getElementById('progress-bar').style.width = `${((currentQuestionIndex + 1) / quizData.length) * 100}%`;
+
+      document.getElementById('question-tag').innerText = q.tag;
+      document.getElementById('question-text').innerHTML = `${q.id}/ ${q.question}`;
+
+      const container = document.getElementById('options-container');
+      container.innerHTML = '';
+
+      const selectedIdx = userAnswers[currentQuestionIndex];
+      const hasAnswered = selectedIdx !== null;
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.onclick = () => selectOption(idx);
+        
+        let baseStyle = "w-full text-left p-4 rounded-xl border text-sm font-medium transition flex items-center justify-between group shadow-sm ";
+        
+        if (!hasAnswered) {
+          baseStyle += "border-slate-200 hover:border-indigo-400 bg-white hover:bg-indigo-50/30 text-slate-700";
+        } else {
+          if (opt.isCorrect) {
+            baseStyle += "border-indigo-500 bg-indigo-50 text-indigo-900 font-semibold ring-1 ring-indigo-500";
+          } else if (idx === selectedIdx && !opt.isCorrect) {
+            baseStyle += "border-rose-400 bg-rose-50 text-rose-900";
+          } else {
+            baseStyle += "border-slate-200 bg-slate-50 text-slate-400 opacity-60";
+          }
+        }
+
+        btn.className = baseStyle;
+        btn.disabled = hasAnswered;
+
+        let iconHTML = '';
+        if (hasAnswered) {
+          if (opt.isCorrect) {
+            iconHTML = `<i class="fa-solid fa-circle-check text-indigo-600 text-lg"></i>`;
+          } else if (idx === selectedIdx && !opt.isCorrect) {
+            iconHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 text-lg"></i>`;
+          }
+        } else {
+          iconHTML = `<span class="w-5 h-5 rounded-full border border-slate-300 group-hover:border-indigo-500 flex items-center justify-center text-xs text-transparent group-hover:text-indigo-500">✓</span>`;
+        }
+
+        btn.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-indigo-100 group-hover:text-indigo-700 flex items-center justify-center text-xs font-bold text-slate-600 uppercase border border-slate-200/60 transition">
+              ${opt.label}
+            </span>
+            <span class="leading-relaxed">${opt.text}</span>
+          </div>
+          <div>${iconHTML}</div>
+        `;
+
+        container.appendChild(btn);
+      });
+
+      const feedbackBox = document.getElementById('feedback-box');
+      if (hasAnswered) {
+        feedbackBox.classList.remove('hidden');
+        const isUserCorrect = q.options[selectedIdx].isCorrect;
+
+        const titleEl = document.getElementById('feedback-title');
+        const textEl = document.getElementById('feedback-text');
+
+        if (isUserCorrect) {
+          feedbackBox.className = "p-4 rounded-xl border bg-indigo-50 border-indigo-200 text-indigo-900 space-y-1.5";
+          titleEl.className = "flex items-center gap-2 font-bold text-sm text-indigo-800";
+          titleEl.innerHTML = `<i class="fa-solid fa-circle-check text-indigo-600"></i> Bonne réponse !`;
+        } else {
+          feedbackBox.className = "p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 space-y-1.5";
+          titleEl.className = "flex items-center gap-2 font-bold text-sm text-rose-800";
+          titleEl.innerHTML = `<i class="fa-solid fa-circle-exclamation text-rose-600"></i> Réponse incorrecte`;
+        }
+
+        textEl.innerHTML = q.explanation;
+      } else {
+        feedbackBox.classList.add('hidden');
+      }
+
+      document.getElementById('prev-btn').disabled = currentQuestionIndex === 0;
+      
+      const nextBtn = document.getElementById('next-btn');
+      if (currentQuestionIndex === quizData.length - 1) {
+        nextBtn.innerHTML = `<span>Voir les résultats</span> <i class="fa-solid fa-flag-checkered text-xs"></i>`;
+      } else {
+        nextBtn.innerHTML = `<span>Suivant</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
+      }
+
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "\\(", right: "\\)", display: false},
+            {left: "\\[", right: "\\]", display: true}
+          ]
+        });
+      }
+    }
+
+    function selectOption(index) {
+      if (userAnswers[currentQuestionIndex] !== null) return;
+      
+      userAnswers[currentQuestionIndex] = index;
+      if (quizData[currentQuestionIndex].options[index].isCorrect) {
+        score++;
+      }
+      renderQuestion();
+    }
+
+    function nextQuestion() {
+      if (currentQuestionIndex < quizData.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function prevQuestion() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderQuestion();
+      }
+    }
+
+    function showResults() {
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('results-screen').classList.remove('hidden');
+
+      const percentage = Math.round((score / quizData.length) * 100);
+      document.getElementById('final-score').innerText = `${score} / ${quizData.length}`;
+      document.getElementById('final-percentage').innerText = `${percentage}% de réussite`;
+
+      const msgEl = document.getElementById('final-message');
+      if (percentage >= 80) {
+        msgEl.className = "p-4 rounded-xl text-sm font-medium border bg-indigo-50 border-indigo-200 text-indigo-800";
+        msgEl.innerHTML = "🏆 <b>Félicitations !</b> Vous maîtrisez parfaitement la résonance d'intensité, la résonance de charge et le facteur de qualité.";
+      } else if (percentage >= 50) {
+        msgEl.className = "p-4 rounded-xl text-sm font-medium border bg-amber-50 border-amber-200 text-amber-800";
+        msgEl.innerHTML = "👍 <b>Bon travail !</b> Pensez à réviser la différence entre résonance d'intensité ($\\\omega_0$) et résonance de charge ($\\\omega_r$).";
+      } else {
+        msgEl.className = "p-4 rounded-xl text-sm font-medium border bg-rose-50 border-rose-200 text-rose-800";
+        msgEl.innerHTML = "📚 <b>À réviser !</b> Reprenez le cours sur la construction de Fresnel, l'impédance $Z$ et les conditions de résonance.";
+      }
+
+      if (window.renderMathInElement) {
+        renderMathInElement(document.getElementById('results-screen'));
+      }
+    }
+
+    function restartQuiz() {
+      currentQuestionIndex = 0;
+      userAnswers = new Array(quizData.length).fill(null);
+      score = 0;
+      document.getElementById('results-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      renderQuestion();
+    }
+
+    renderQuestion();
+  </script>
+</body>
+</html>

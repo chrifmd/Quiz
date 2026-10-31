@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Interactif - Chimie Terminale</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- KaTeX pour les formules mathématiques/chimiques -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-full flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-800 antialiased">
+
+  <!-- Header / Navigation bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
+          <i class="fa-solid fa-flask text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 text-lg leading-tight">Quiz de Chimie</h1>
+          <p class="text-xs text-slate-500 font-medium">Équilibres chimiques & Estérification</p>
+        </div>
+      </div>
+      <div class="bg-slate-100 border border-slate-200 rounded-full px-3 py-1 text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+        <i class="fa-solid fa-graduation-cap text-emerald-600"></i>
+        <span>Niveau Terminale</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-3xl w-full mx-auto px-4 py-6 md:py-10 flex-grow flex flex-col justify-center">
+
+    <!-- Screen 1: Quiz Interface -->
+    <div id="quiz-screen" class="space-y-6">
+      
+      <!-- Progress & Top Meta -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex justify-between items-center text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <span id="question-number">Question 1 / 10</span>
+          <span id="score-counter" class="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Score: 0</span>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200/60">
+          <div id="progress-bar" class="bg-emerald-500 h-full w-[10%] transition-all duration-300 ease-out rounded-full"></div>
+        </div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm space-y-6 relative">
+        <div class="space-y-2">
+          <span id="question-tag" class="inline-block text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-md">
+            Question initiale
+          </span>
+          <h2 id="question-text" class="text-lg md:text-xl font-bold text-slate-900 leading-snug">
+            <!-- Question string inserted via JS -->
+          </h2>
+        </div>
+
+        <!-- Options Container -->
+        <div id="options-container" class="space-y-3">
+          <!-- Option buttons inserted dynamically -->
+        </div>
+
+        <!-- Feedback & Explanation Box (Hidden initially) -->
+        <div id="feedback-box" class="hidden p-4 rounded-xl border transition-all duration-200 space-y-2">
+          <div class="flex items-center gap-2 font-bold text-sm" id="feedback-title">
+            <!-- Icon and title via JS -->
+          </div>
+          <p id="feedback-text" class="text-sm text-slate-600 leading-relaxed">
+            <!-- Explanation string inserted via JS -->
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="flex justify-between items-center pt-2">
+        <button id="prev-btn" onclick="prevQuestion()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-medium text-sm transition flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm" disabled>
+          <i class="fa-solid fa-arrow-left text-xs"></i> Précédent
+        </button>
+        <button id="next-btn" onclick="nextQuestion()" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition shadow-sm hover:shadow flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+          <span>Suivant</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Screen 2: Results Screen (Hidden by default) -->
+    <div id="results-screen" class="hidden bg-white border border-slate-200 rounded-2xl p-8 shadow-sm text-center space-y-6 max-w-xl mx-auto my-auto">
+      <div class="inline-flex p-4 bg-emerald-50 border border-emerald-100 rounded-full text-emerald-600 mb-2">
+        <i class="fa-solid fa-trophy text-4xl"></i>
+      </div>
+      
+      <div class="space-y-2">
+        <h2 class="text-2xl font-bold text-slate-900">Quiz Terminé !</h2>
+        <p class="text-sm text-slate-500">Voici un récapitulatif de vos résultats en chimie :</p>
+      </div>
+
+      <!-- Score Display -->
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 space-y-2">
+        <div class="text-5xl font-black text-emerald-600" id="final-score">0 / 10</div>
+        <p class="text-sm font-medium text-slate-600" id="final-percentage">0% de bonnes réponses</p>
+      </div>
+
+      <!-- Dynamic Message -->
+      <div id="final-message" class="p-4 rounded-xl text-sm font-medium border bg-emerald-50 border-emerald-200 text-emerald-800">
+        <!-- Text set by JS -->
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
+        <button onclick="restartQuiz()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition shadow-sm flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rotate-right text-sm"></i>
+          <span>Recommencer le Quiz</span>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
+    Quiz interactif de Chimie &bull; Conforme au programme de Terminale
+  </footer>
+
+  <!-- Script JS des données et de la logique -->
+  <script>
+    const quizData = [
+      {
+        id: 1,
+        isOriginal: true,
+        question: "Une réaction est limitée si :",
+        options: [
+          { label: "a", text: "le taux d'avancement final est inférieur à l'unité (\\(\\tau_f < 1\\))", isCorrect: true },
+          { label: "b", text: "le taux d'avancement final est égal à l'unité (\\(\\tau_f = 1\\))", isCorrect: false },
+          { label: "c", text: "l'avancement final est inférieur à l'avancement maximal de la réaction (\\(x_f < x_{max}\\))", isCorrect: true }
+        ],
+        explanation: "<b>Note pédagogique :</b> Les options <b>(a)</b> et <b>(c)</b> sont toutes deux exactes ! Une réaction est dite limitée ou incomplète lorsque l'avancement final est strictement inférieur à l'avancement maximal (\\(x_f < x_{max}\\)), ce qui implique un taux d'avancement final \\(\\tau_f = x_f / x_{max} < 1\\)."
+      },
+      {
+        id: 2,
+        isOriginal: true,
+        question: "Un système chimique est dans un état d'équilibre chimique lorsqu'il :",
+        options: [
+          { label: "a", text: "contient tous les réactifs et tous les produits en concentrations constantes au cours du temps", isCorrect: true },
+          { label: "b", text: "ne contient que quelques entités parmi celles qui sont écrites dans l'équation chimique", isCorrect: false },
+          { label: "c", text: "contient seulement les produits", isCorrect: false }
+        ],
+        explanation: "À l'état d'équilibre chimique, la réaction continue de se dérouler dans les deux sens à des vitesses égales (équilibre dynamique), ce qui rend les concentrations de toutes les espèces (réactifs et produits) constantes au cours du temps."
+      },
+      {
+        id: 3,
+        isOriginal: true,
+        question: "À l'équilibre chimique et à l'échelle moléculaire, les vitesses des réactions d'estérification et d'hydrolyse sont :",
+        options: [
+          { label: "a", text: "différentes", isCorrect: false },
+          { label: "b", text: "égales", isCorrect: true },
+          { label: "c", text: "nulles", isCorrect: false }
+        ],
+        explanation: "L'équilibre chimique est <b>dynamique</b> : la vitesse de formation de l'ester (réaction directe) est exactement égale à la vitesse de sa consommation par hydrolyse (réaction inverse)."
+      },
+      {
+        id: 4,
+        isOriginal: false,
+        question: "La constante d'équilibre \\(K\\) associée à une réaction chimique dépend :",
+        options: [
+          { label: "a", text: "uniquement de la température \\(T\\)", isCorrect: true },
+          { label: "b", text: "de la composition initiale du mélange", isCorrect: false },
+          { label: "c", text: "de la présence d'un catalyseur", isCorrect: false }
+        ],
+        explanation: "Pour une réaction donnée, la constante d'équilibre \\(K\\) est une grandeur thermodynamique qui ne dépend <b>que de la température</b>. Elle est totalement indépendante de la composition initiale du système et de la présence de catalyseurs."
+      },
+      {
+        id: 5,
+        isOriginal: false,
+        question: "Pour un mélange équimolaire d'acide carboxylique et d'alcool primaire, le taux d'avancement final \\(\\tau_f\\) à l'équilibre est environ égal à :",
+        options: [
+          { label: "a", text: "0,33 (ou 33 %)", isCorrect: false },
+          { label: "b", text: "0,67 (ou 67 %)", isCorrect: true },
+          { label: "c", text: "1,00 (ou 100 %)", isCorrect: false }
+        ],
+        explanation: "Dans le cas d'un mélange équimolaire d'acide et d'alcool primaire, le rendement de l'estérification atteint 67 % (soit \\(\\tau_f \\approx 0{,}67\\)), correspondant à une constante d'équilibre \\(K \\approx 4\\)."
+      },
+      {
+        id: 6,
+        isOriginal: false,
+        question: "L'ajout d'un catalyseur dans un milieu réactionnel a pour effet de :",
+        options: [
+          { label: "a", text: "déplacer l'état d'équilibre et augmenter le rendement", isCorrect: false },
+          { label: "b", text: "augmenter la vitesse de réaction sans modifier l'état d'équilibre", isCorrect: true },
+          { label: "c", text: "diminuer la valeur de la constante d'équilibre \\(K\\)", isCorrect: false }
+        ],
+        explanation: "Un catalyseur accélère la vitesse d'atteinte de l'équilibre en augmentant la vitesse des réactions directe et inverse, mais il ne modifie ni la composition du système à l'équilibre ni le rendement final."
+      },
+      {
+        id: 7,
+        isOriginal: false,
+        question: "L'expression du quotient de réaction \\(\\Pi\\) (ou moteur de réaction) pour une réaction \\(aA + bB \\rightleftharpoons cC + dD\\) est :",
+        options: [
+          { label: "a", text: "\\(\\Pi = \\frac{[C]^c \\cdot [D]^d}{[A]^a \\cdot [B]^b}\\)", isCorrect: true },
+          { label: "b", text: "\\(\\Pi = \\frac{[A]^a \\cdot [B]^b}{[C]^c \\cdot [D]^d}\\)", isCorrect: false },
+          { label: "c", text: "\\(\\Pi = [C]^c + [D]^d - [A]^a - [B]^b\\)", isCorrect: false }
+        ],
+        explanation: "Par définition, le quotient de réaction \\(\\Pi\\) s'écrit comme le produit des concentrations des produits élevées à leurs coefficients stœchiométriques, divisé par celui des réactifs."
+      },
+      {
+        id: 8,
+        isOriginal: false,
+        question: "Pour augmenter le rendement d'une réaction d'estérification, on peut :",
+        options: [
+          { label: "a", text: "ajouter un catalyseur approprié", isCorrect: false },
+          { label: "b", text: "introduire un des réactifs en excès ou éliminer l'eau au fur et à mesure", isCorrect: true },
+          { label: "c", text: "diminuer le temps de réaction", isCorrect: false }
+        ],
+        explanation: "D'après la loi de modération (Le Chatelier), ajouter un réactif en excès ou éliminer l'un des produits (comme l'eau grâce à un appareil de Dean-Stark) déplace l'équilibre dans le sens direct et améliore le rendement."
+      },
+      {
+        id: 9,
+        isOriginal: false,
+        question: "La réaction d'hydrolyse d'un ester par l'eau est une réaction :",
+        options: [
+          { label: "a", text: "totale, rapide et exothermique", isCorrect: false },
+          { label: "b", text: "limitée, lente et athermal", isCorrect: true },
+          { label: "c", text: "impossible à température ambiante", isCorrect: false }
+        ],
+        explanation: "L'hydrolyse d'un ester (réaction inverse de l'estérification) est une réaction lente, limitée par un état d'équilibre et pratiquement athermique (ne dégage ni n'absorbe de chaleur)."
+      },
+      {
+        id: 10,
+        isOriginal: false,
+        question: "Si à un instant donné le quotient de réaction \\(\\Pi_i < K\\), alors le système évolue spontanément dans :",
+        options: [
+          { label: "a", text: "le sens direct (sens 1 de formation des produits)", isCorrect: true },
+          { label: "b", text: "le sens inverse (sens 2)", isCorrect: false },
+          { label: "c", text: "le système est déjà à l'équilibre et n'évolue plus", isCorrect: false }
+        ],
+        explanation: "Lorsque \\(\\Pi_i < K\\), le système évolue dans le sens direct (sens 1) afin de consommer les réactifs, former des produits et faire augmenter \\(\\Pi\\) jusqu'à atteindre la valeur de \\(K\\) à l'équilibre."
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let userAnswers = new Array(quizData.length).fill(null);
+    let score = 0;
+
+    function renderQuestion() {
+      const q = quizData[currentQuestionIndex];
+      
+      // Meta info
+      document.getElementById('question-number').innerText = `Question ${currentQuestionIndex + 1} / ${quizData.length}`;
+      document.getElementById('score-counter').innerText = `Score: ${score}`;
+      document.getElementById('progress-bar').style.width = `${((currentQuestionIndex + 1) / quizData.length) * 100}%`;
+
+      // Tag
+      const tagEl = document.getElementById('question-tag');
+      if (q.isOriginal) {
+        tagEl.innerText = "Question du document";
+        tagEl.className = "inline-block text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-md";
+      } else {
+        tagEl.innerText = "Question complémentaire";
+        tagEl.className = "inline-block text-xs font-semibold text-sky-700 bg-sky-50 border border-sky-200/80 px-2.5 py-1 rounded-md";
+      }
+
+      // Question text
+      document.getElementById('question-text').innerHTML = `${q.id}/ ${q.question}`;
+
+      // Options
+      const container = document.getElementById('options-container');
+      container.innerHTML = '';
+
+      const selectedIdx = userAnswers[currentQuestionIndex];
+      const hasAnswered = selectedIdx !== null;
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.onclick = () => selectOption(idx);
+        
+        let baseStyle = "w-full text-left p-4 rounded-xl border text-sm font-medium transition flex items-center justify-between group shadow-sm ";
+        
+        if (!hasAnswered) {
+          baseStyle += "border-slate-200 hover:border-emerald-400 bg-white hover:bg-emerald-50/30 text-slate-700";
+        } else {
+          if (opt.isCorrect) {
+            baseStyle += "border-emerald-500 bg-emerald-50 text-emerald-900 font-semibold ring-1 ring-emerald-500";
+          } else if (idx === selectedIdx && !opt.isCorrect) {
+            baseStyle += "border-rose-400 bg-rose-50 text-rose-900";
+          } else {
+            baseStyle += "border-slate-200 bg-slate-50 text-slate-400 opacity-60";
+          }
+        }
+
+        btn.className = baseStyle;
+        btn.disabled = hasAnswered;
+
+        let iconHTML = '';
+        if (hasAnswered) {
+          if (opt.isCorrect) {
+            iconHTML = `<i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>`;
+          } else if (idx === selectedIdx && !opt.isCorrect) {
+            iconHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 text-lg"></i>`;
+          }
+        } else {
+          iconHTML = `<span class="w-5 h-5 rounded-full border border-slate-300 group-hover:border-emerald-500 flex items-center justify-center text-xs text-transparent group-hover:text-emerald-500">✓</span>`;
+        }
+
+        btn.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-emerald-100 group-hover:text-emerald-700 flex items-center justify-center text-xs font-bold text-slate-600 uppercase border border-slate-200/60 transition">
+              ${opt.label}
+            </span>
+            <span class="leading-relaxed">${opt.text}</span>
+          </div>
+          <div>${iconHTML}</div>
+        `;
+
+        container.appendChild(btn);
+      });
+
+      // Feedback & Explanation box
+      const feedbackBox = document.getElementById('feedback-box');
+      if (hasAnswered) {
+        feedbackBox.classList.remove('hidden');
+        const isUserCorrect = q.options[selectedIdx].isCorrect;
+
+        const titleEl = document.getElementById('feedback-title');
+        const textEl = document.getElementById('feedback-text');
+
+        if (isUserCorrect) {
+          feedbackBox.className = "p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 space-y-1.5";
+          titleEl.className = "flex items-center gap-2 font-bold text-sm text-emerald-800";
+          titleEl.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> Excellente réponse !`;
+        } else {
+          feedbackBox.className = "p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 space-y-1.5";
+          titleEl.className = "flex items-center gap-2 font-bold text-sm text-rose-800";
+          titleEl.innerHTML = `<i class="fa-solid fa-circle-exclamation text-rose-600"></i> Réponse incorrecte`;
+        }
+
+        textEl.innerHTML = q.explanation;
+      } else {
+        feedbackBox.classList.add('hidden');
+      }
+
+      // Navigation Buttons
+      document.getElementById('prev-btn').disabled = currentQuestionIndex === 0;
+      
+      const nextBtn = document.getElementById('next-btn');
+      if (currentQuestionIndex === quizData.length - 1) {
+        nextBtn.innerHTML = `<span>Voir les résultats</span> <i class="fa-solid fa-flag-checkered text-xs"></i>`;
+      } else {
+        nextBtn.innerHTML = `<span>Suivant</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
+      }
+
+      // Math Rendering via KaTeX
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "\\(", right: "\\)", display: false},
+            {left: "\\[", right: "\\]", display: true}
+          ]
+        });
+      }
+    }
+
+    function selectOption(index) {
+      if (userAnswers[currentQuestionIndex] !== null) return;
+      
+      userAnswers[currentQuestionIndex] = index;
+      if (quizData[currentQuestionIndex].options[index].isCorrect) {
+        score++;
+      }
+      renderQuestion();
+    }
+
+    function nextQuestion() {
+      if (currentQuestionIndex < quizData.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function prevQuestion() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderQuestion();
+      }
+    }
+
+    function showResults() {
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('results-screen').classList.remove('hidden');
+
+      const percentage = Math.round((score / quizData.length) * 100);
+      document.getElementById('final-score').innerText = `${score} / ${quizData.length}`;
+      document.getElementById('final-percentage').innerText = `${percentage}% de réponses correctes`;
+
+      const msgEl = document.getElementById('final-message');
+      if (percentage >= 80) {
+        msgEl.className = "p-4 rounded-xl text-sm font-medium border bg-emerald-50 border-emerald-200 text-emerald-800";
+        msgEl.innerHTML = "🏆 <b>Félicitations !</b> Vous maîtrisez parfaitement les notions d'équilibres chimiques et d'estérification.";
+      } else if (percentage >= 50) {
+        msgEl.className = "p-4 rounded-xl text-sm font-medium border bg-amber-50 border-amber-200 text-amber-800";
+        msgEl.innerHTML = "👍 <b>Bon travail !</b> Vous avez de bonnes bases, mais relisez bien les explications pour consolider vos connaissances.";
+      } else {
+        msgEl.className = "p-4 rounded-xl text-sm font-medium border bg-rose-50 border-rose-200 text-rose-800";
+        msgEl.innerHTML = "📚 <b>À réviser !</b> Prenez le temps de revoir le cours sur le taux d'avancement final et le quotient de réaction \\(\\Pi\\).";
+      }
+
+      if (window.renderMathInElement) {
+        renderMathInElement(document.getElementById('results-screen'));
+      }
+    }
+
+    function restartQuiz() {
+      currentQuestionIndex = 0;
+      userAnswers = new Array(quizData.length).fill(null);
+      score = 0;
+      document.getElementById('results-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      renderQuestion();
+    }
+
+    // Init quiz
+    renderQuestion();
+  </script>
+</body>
+</html>

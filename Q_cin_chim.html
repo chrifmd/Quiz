@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz - Cinétique Chimique</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- KaTeX pour le rendu des formules mathématiques -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-full flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-800 antialiased">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
+          <i class="fa-solid fa-stopwatch text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 text-lg leading-tight">Quiz : Cinétique Chimique</h1>
+          <p class="text-xs text-slate-500 font-medium">Vitesse de réaction & Facteurs cinétiques</p>
+        </div>
+      </div>
+      <div class="bg-slate-100 border border-slate-200 rounded-full px-3 py-1 text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+        <i class="fa-solid fa-graduation-cap text-emerald-600"></i>
+        <span>Terminale</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-3xl w-full mx-auto px-4 py-6 md:py-10 flex-grow flex flex-col justify-center">
+
+    <!-- Screen 1: Quiz -->
+    <div id="quiz-screen" class="space-y-6">
+      
+      <!-- Progress Bar & Score -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex justify-between items-center text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <span id="question-number">Question 1 / 10</span>
+          <span id="score-counter" class="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Score: 0</span>
+        </div>
+        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200/60">
+          <div id="progress-bar" class="bg-emerald-500 h-full w-[10%] transition-all duration-300 ease-out rounded-full"></div>
+        </div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+        <div class="space-y-2">
+          <span id="question-tag" class="inline-block text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-md">
+            Cinétique
+          </span>
+          <h2 id="question-text" class="text-lg md:text-xl font-bold text-slate-900 leading-snug"></h2>
+        </div>
+
+        <!-- Options Container -->
+        <div id="options-container" class="space-y-3"></div>
+
+        <!-- Feedback & Explanation Box -->
+        <div id="feedback-box" class="hidden p-4 rounded-xl border transition-all duration-200 space-y-2">
+          <div class="flex items-center gap-2 font-bold text-sm" id="feedback-title"></div>
+          <p id="feedback-text" class="text-sm text-slate-600 leading-relaxed"></p>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="flex justify-between items-center pt-2">
+        <button id="prev-btn" onclick="prevQuestion()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-medium text-sm transition flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm" disabled>
+          <i class="fa-solid fa-arrow-left text-xs"></i> Précédent
+        </button>
+        <button id="next-btn" onclick="nextQuestion()" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+          <span>Suivant</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Screen 2: Results -->
+    <div id="results-screen" class="hidden bg-white border border-slate-200 rounded-2xl p-8 shadow-sm text-center space-y-6 max-w-xl mx-auto my-auto">
+      <div class="inline-flex p-4 bg-emerald-50 border border-emerald-100 rounded-full text-emerald-600 mb-2">
+        <i class="fa-solid fa-trophy text-4xl"></i>
+      </div>
+      
+      <div class="space-y-2">
+        <h2 class="text-2xl font-bold text-slate-900">Quiz Terminé !</h2>
+        <p class="text-sm text-slate-500">Résultats du test de cinétique chimique :</p>
+      </div>
+
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 space-y-2">
+        <div class="text-5xl font-black text-emerald-600" id="final-score">0 / 10</div>
+        <p class="text-sm font-medium text-slate-600" id="final-percentage">0% de bonnes réponses</p>
+      </div>
+
+      <div id="final-message" class="p-4 rounded-xl text-sm font-medium border"></div>
+
+      <div class="pt-4 flex justify-center">
+        <button onclick="restartQuiz()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition shadow-sm flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rotate-right text-sm"></i>
+          <span>Recommencer le Quiz</span>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
+    Quiz de Chimie &bull; Terminale
+  </footer>
+
+  <script>
+    const quizData = [
+      {
+        id: 1,
+        tag: "Définition de la vitesse",
+        question: "Pour une réaction à volume constant \\(V\\), la vitesse volumique \\(v(t)\\) d'apparition d'un produit \\(P\\) est définie par :",
+        options: [
+          { label: "a", text: "\\(v(t) = - \\frac{d[P]}{dt}\\)", isCorrect: false },
+          { label: "b", text: "\\(v(t) = \\frac{1}{V} \\cdot \\frac{dx}{dt} = \\frac{d[P]}{dt}\\)", isCorrect: true },
+          { label: "c", text: "\\(v(t) = \\frac{[P]}{t}\\)", isCorrect: false }
+        ],
+        explanation: "La vitesse volumique de réaction correspond à la dérivée par rapport au temps de la concentration volumique du produit formé : \\(v(t) = \\frac{d[P]}{dt} = \\frac{1}{V} \\frac{dx}{dt}\\)."
+      },
+      {
+        id: 2,
+        tag: "Évolution temporelle",
+        question: "Au cours du temps, dans la majorité des réactions chimiques simples, la vitesse volumique de réaction :",
+        options: [
+          { label: "a", text: "reste constante du début à la fin", isCorrect: false },
+          { label: "b", text: "augmente progressivement jusqu'à l'état final", isCorrect: false },
+          { label: "c", text: "diminue progressivement en raison de l'épuisement des réactifs", isCorrect: true }
+        ],
+        explanation: "Au fur et à mesure que la réaction avance, la concentration des réactifs diminue. Or, la concentration des réactifs est un facteur cinétique, ce qui entraîne la diminution progressive de la vitesse volumique."
+      },
+      {
+        id: 3,
+        tag: "Détermination graphique",
+        question: "Sur la courbe de la concentration d'un produit \\([P] = f(t)\\), la vitesse volumique instantanée à une date \\(t_1\\) est égale à :",
+        options: [
+          { label: "a", text: "l'ordonnée du point de la courbe à la date \\(t_1\\)", isCorrect: false },
+          { label: "b", text: "le coefficient directeur de la tangente à la courbe à la date \\(t_1\\)", isCorrect: true },
+          { label: "c", text: "l'aire sous la courbe entre \\(t = 0\\) et \\(t_1\\)", isCorrect: false }
+        ],
+        explanation: "Puisque \\(v(t) = \\frac{d[P]}{dt}\\), la vitesse instantanée correspond graphiquement à la pente (coefficient directeur) de la tangente à la courbe \\([P] = f(t)\\) à l'instant considéré."
+      },
+      {
+        id: 4,
+        tag: "Temps de demi-réaction",
+        question: "Le temps de demi-réaction \\(t_{1/2}\\) est défini comme la durée au bout de laquelle :",
+        options: [
+          { label: "a", text: "la moitié de la masse totale de la solution a réagi", isCorrect: false },
+          { label: "b", text: "l'avancement \\(x\\) atteint la moitié de sa valeur finale \\(x_f\\) (\\(x(t_{1/2}) = \\frac{x_f}{2}\\))", isCorrect: true },
+          { label: "c", text: "la vitesse de la réaction est divisée par deux", isCorrect: false }
+        ],
+        explanation: "Par définition, à \\(t = t_{1/2}\\), l'avancement de la réaction est égal à la moitié de l'avancement final : \\(x(t_{1/2}) = x_f / 2\\) (ou \\(x_{max} / 2\\) si la réaction est totale)."
+      },
+      {
+        id: 5,
+        tag: "Facteurs cinétiques",
+        question: "Lequel des éléments suivants constitue un facteur cinétique permettant d'augmenter la vitesse d'une réaction ?",
+        options: [
+          { label: "a", text: "L'augmentation de la température du milieu réactionnel", isCorrect: true },
+          { label: "b", text: "L'augmentation du volume du récipient à quantité de matière constante", isCorrect: false },
+          { label: "c", text: "La baisse de la concentration initiale des réactifs", isCorrect: false }
+        ],
+        explanation: "L'élévation de température et l'augmentation de la concentration initiale des réactifs augmentent le nombre de collisions efficaces par unité de temps, accélérant ainsi la réaction."
+      },
+      {
+        id: 6,
+        tag: "Trempe thermique",
+        question: "L'opération de « trempe » (refroidissement brutal ou dilution rapide d'un prélèvement) sert à :",
+        options: [
+          { label: "a", text: "accélérer la réaction pour atteindre plus vite l'état d'équilibre", isCorrect: false },
+          { label: "b", text: "bloquer quasi-instantanément la réaction afin de doser une espèce à une date donnée", isCorrect: true },
+          { label: "c", text: "changer le sens d'évolution spontanée de la réaction", isCorrect: false }
+        ],
+        explanation: "La trempe diminue brusquement la température ou les concentrations des réactifs, ce qui rend la vitesse de réaction négligeable et fige l'état du système pour permettre son analyse."
+      },
+      {
+        id: 7,
+        tag: "Rôle du catalyseur",
+        question: "Un catalyseur est une substance qui :",
+        options: [
+          { label: "a", text: "augmente la vitesse de réaction et apparaît dans le bilan stœchiométrique", isCorrect: false },
+          { label: "b", text: "accélère la réaction sans modifier l'état final d'équilibre du système", isCorrect: true },
+          { label: "c", text: "augmente l'avancement maximal \\(x_{max}\\) de la réaction", isCorrect: false }
+        ],
+        explanation: "Un catalyseur accélère la réaction en proposant un mécanisme réactionnel d'énergie d'activation plus faible. Il est régénéré à la fin et n'impacte ni la composition à l'équilibre ni l'avancement final."
+      },
+      {
+        id: 8,
+        tag: "Types de catalyses",
+        question: "Si le catalyseur et les réactifs se trouvent dans deux phases distinctes (ex: catalyseur solide et réactifs liquides), la catalyse est dite :",
+        options: [
+          { label: "a", text: "homogène", isCorrect: false },
+          { label: "b", text: "hétérogène", isCorrect: true },
+          { label: "c", text: "enzymatique", isCorrect: false }
+        ],
+        explanation: "La catalyse est hétérogène lorsque le catalyseur et les réactifs appartiennent à des phases différentes. Elle est dite homogène lorsqu'ils constituent une seule et même phase."
+      },
+      {
+        id: 9,
+        tag: "Interprétation microscopique",
+        question: "À l'échelle microscopique, une réaction chimique entre deux entités n'a lieu que si la collision est dite « efficace », ce qui nécessite :",
+        options: [
+          { label: "a", text: "une orientation appropriée et une énergie cinétique minimale (énergie d'activation)", isCorrect: true },
+          { label: "b", text: "que la réaction soit obligatoirement exothermique", isCorrect: false },
+          { label: "c", text: "une température proche de 0 °C", isCorrect: false }
+        ],
+        explanation: "Une collision efficace requiert que les molécules se heurtent avec une orientation spatiale favorable et une énergie suffisante supérieure ou égale à l'énergie d'activation \\(E_a\\)."
+      },
+      {
+        id: 10,
+        tag: "Suivi cinétique",
+        question: "Parmi les méthodes physiques de suivi cinétique non destructives, on retrouve :",
+        options: [
+          { label: "a", text: "le titrage volumétrique classique avec indicateur coloré", isCorrect: false },
+          { label: "b", text: "la conductimétrie et la spectrophotométrie en continu", isCorrect: true },
+          { label: "c", text: "la distillation fractionnée", isCorrect: false }
+        ],
+        explanation: "La conductimétrie et la spectrophotométrie mesurent une propriété physique de la solution en continu sans consommer les réactifs (méthodes non destructives), contrairement au titrage qui nécessite des prélèvements."
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let userAnswers = new Array(quizData.length).fill(null);
+    let score = 0;
+
+    function renderQuestion() {
+      const q = quizData[currentQuestionIndex];
+      
+      document.getElementById('question-number').innerText = `Question ${currentQuestionIndex + 1} / ${quizData.length}`;
+      document.getElementById('score-counter').innerText = `Score: ${score}`;
+      document.getElementById('progress-bar').style.width = `${((currentQuestionIndex + 1) / quizData.length) * 100}%`;
+
+      document.getElementById('question-tag').innerText = q.tag;
+      document.getElementById('question-text').innerHTML = `${q.id}/ ${q.question}`;
+
+      const container = document.getElementById('options-container');
+      container.innerHTML = '';
+
+      const selectedIdx = userAnswers[currentQuestionIndex];
+      const hasAnswered = selectedIdx !== null;
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.onclick = () => selectOption(idx);
+        
+        let baseStyle = "w-full text-left p-4 rounded-xl border text-sm font-medium transition flex items-center justify-between group shadow-sm ";
+        
+        if (!hasAnswered) {
+          baseStyle += "border-slate-200 hover:border-emerald-400 bg-white hover:bg-emerald-50/30 text-slate-700";
+        } else {
+          if (opt.isCorrect) {
+            baseStyle += "border-emerald-500 bg-emerald-50 text-emerald-900 font-semibold ring-1 ring-emerald-500";
+          } else if (idx === selectedIdx && !opt.isCorrect) {
+            baseStyle += "border-rose-400 bg-rose-50 text-rose-900";
+          } else {
+            baseStyle += "border-slate-200 bg-slate-50 text-slate-400 opacity-60";
+          }
+        }
+
+        btn.className = baseStyle;
+        btn.disabled = hasAnswered;
+
+        let iconHTML = '';
+        if (hasAnswered) {
+          if (opt.isCorrect) {
+            iconHTML = `<i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>`;
+          } else if (idx === selectedIdx && !opt.isCorrect) {
+            iconHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 text-lg"></i>`;
+          }
+        } else {
+          iconHTML = `<span class="w-5 h-5 rounded-full border border-slate-300 group-hover:border-emerald-500 flex items-center justify-center text-xs text-transparent group-hover:text-emerald-500">✓</span>`;
+        }
+
+        btn.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-emerald-100 group-hover:text-emerald-700 flex items-center justify-center text-xs font-bold text-slate-600 uppercase border border-slate-200/60 transition">
+              ${opt.label}
+            </span>
+            <span class="leading-relaxed">${opt.text}</span>
+          </div>
+          <div>${iconHTML}</div>
+        `;
+
+        container.appendChild(btn);
+      });
+
+      const feedbackBox = document.getElementById('feedback-box');
+      if (hasAnswered) {
+        feedbackBox.classList.remove('hidden');
+        const isUserCorrect = q.options[selectedIdx].isCorrect;
+
+        const titleEl = document.getElementById('feedback-title');
+        const textEl = document.getElementById('feedback-text');
+
+        if (isUserCorrect) {
+          feedbackBox.className = "p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 space-y-1.5";
+          titleEl.className = "flex items-center gap-2 font-bold text-sm text-emerald-800";
+          titleEl.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> Bonne réponse !`;
+        } else {
+          feedbackBox.className = "p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 space-y-1.5";
+          titleEl.className = "flex items-center gap-2 font-bold text-sm text-rose-800";
+          titleEl.innerHTML = `<i class="fa-solid fa-circle-exclamation text-rose-600"></i> Réponse incorrecte`;
+        }
+
+        textEl.innerHTML = q.explanation;
+      } else {
+        feedbackBox.classList.add('hidden');
+      }
+
+      document.getElementById('prev-btn').disabled = currentQuestionIndex === 0;
+      
+      const nextBtn = document.getElementById('next-btn');
+      if (currentQuestionIndex === quizData.length - 1) {
+        nextBtn.innerHTML = `<span>Voir les résultats</span> <i class="fa-solid fa-flag-checkered text-xs"></i>`;
+      } else {
+        nextBtn.innerHTML = `<span>Suivant</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
+      }
+
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "\\(", right: "\\)", display: false},
+            {left: "\\[", right: "\\]", display: true}
+          ]
+        });
+      }
+    }
+
+    function selectOption(index) {
+      if (userAnswers[currentQuestionIndex] !== null) return;
+      
+      userAnswers[currentQuestionIndex] = index;
+      if (quizData[currentQuestionIndex].options[index].isCorrect) {
+        score++;
+      }
+      renderQuestion();
+    }
+
+    function nextQuestion() {
+      if (currentQuestionIndex < quizData.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function prevQuestion() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderQuestion();
+      }
+    }
+
+    function showResults() {
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('results-screen').classList.remove('hidden');
+
+      const percentage = Math.round((score / quizData.length) * 100);
+      document.getElementById('final-score').innerText = `${score} / ${quizData.length}`;
+      document.getElementById('final-percentage').innerText = `${percentage}% de réussite`;
+
+      const msgEl = document.getElementById('final-message');
+      if (percentage >= 80) {
+        msgEl.className = "p-4 rounded-xl text-sm font-medium border bg-emerald-50 border-emerald-200 text-emerald-800";
+        msgEl.innerHTML = "🏆 <b>Excellent !</b> Vous maîtrisez parfaitement les notions de vitesse volumique, de facteurs cinétiques et de demi-réaction.";
+      } else if (percentage >= 50) {
+        msgEl.className = "p-4 rounded-xl text-sm font-medium border bg-amber-50 border-amber-200 text-amber-800";
+        msgEl.innerHTML = "👍 <b>Bon travail !</b> Réviser l'interprétation graphique des vitesses et les types de catalyse vous permettra de viser le 10/10.";
+      } else {
+        msgEl.className = "p-4 rounded-xl text-sm font-medium border bg-rose-50 border-rose-200 text-rose-800";
+        msgEl.innerHTML = "📚 <b>À réviser !</b> Prenez le temps de revoir les définitions du temps de demi-réaction $t_{1/2}$ et l'action des facteurs cinétiques.";
+      }
+
+      if (window.renderMathInElement) {
+        renderMathInElement(document.getElementById('results-screen'));
+      }
+    }
+
+    function restartQuiz() {
+      currentQuestionIndex = 0;
+      userAnswers = new Array(quizData.length).fill(null);
+      score = 0;
+      document.getElementById('results-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      renderQuestion();
+    }
+
+    renderQuestion();
+  </script>
+</body>
+</html>

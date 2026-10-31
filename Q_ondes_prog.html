@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz : ondes progressives sinusoïdales</title>
+<style>
+:root{
+  --bg:#f3f7f9; --surface:#ffffff; --ink:#0f2a3d; --muted:#5a7283; --line:#d3e0e8;
+  --accent:#0b7f8c; --accent-ink:#ffffff; --ok:#1c7a46; --ok-bg:#e3f4ea; --ko:#b3261e; --ko-bg:#fbe9e7;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0c1a24; --surface:#13283a; --ink:#e6f0f5; --muted:#92abbb; --line:#27435a;
+  --accent:#4fc3d1; --accent-ink:#062129; --ok:#6fd49a; --ok-bg:#12382a; --ko:#ff9d94; --ko-bg:#401c19; color-scheme:dark;}
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;line-height:1.55;min-height:100vh}
+main{max-width:640px;margin:0 auto;padding:28px 18px 60px}
+h1{font-size:1.7rem;line-height:1.2;margin:0 0 6px;font-weight:700}
+.sub{color:var(--muted);margin:0 0 18px;font-family:system-ui,sans-serif;font-size:.95rem}
+.wave{display:block;width:100%;height:36px;margin:0 0 18px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.meta{display:flex;justify-content:space-between;font-family:system-ui,sans-serif;font-size:.85rem;color:var(--muted);margin:8px 0 18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px}
+.q{font-size:1.2rem;margin:0 0 16px;font-weight:600}
+.opts{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.opt{width:100%;text-align:left;font:inherit;font-size:1rem;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:12px 14px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:focus-visible,.btn:focus-visible,.link:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.opt.ok{background:var(--ok-bg);border-color:var(--ok)}
+.opt.ko{background:var(--ko-bg);border-color:var(--ko)}
+.opt:disabled{cursor:default}
+.hint{font-family:system-ui,sans-serif;font-size:.9rem;color:var(--muted);margin:14px 0 0}
+.link{background:none;border:0;padding:0;font:inherit;font-family:system-ui,sans-serif;font-size:.9rem;color:var(--accent);text-decoration:underline;cursor:pointer}
+.fb{margin-top:16px;padding:12px 14px;border-radius:8px;font-family:system-ui,sans-serif;font-size:.95rem}
+.fb.ok{background:var(--ok-bg)} .fb.ko{background:var(--ko-bg)}
+.fb b{display:block;margin-bottom:2px}
+.btn{margin-top:18px;font:inherit;font-family:system-ui,sans-serif;font-weight:600;background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:11px 20px;cursor:pointer}
+.score{font-size:3rem;font-weight:700;margin:4px 0}
+.rev{margin:18px 0 0;padding:0;list-style:none;font-family:system-ui,sans-serif;font-size:.92rem}
+.rev li{padding:8px 0;border-top:1px solid var(--line)}
+.rev .t{font-weight:700}.rev .t.ok{color:var(--ok)}.rev .t.ko{color:var(--ko)}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Ondes progressives sinusoïdales</h1>
+  <p class="sub">10 questions : période, longueur d’onde, retard, déphasage.</p>
+  <svg class="wave" viewBox="0 0 600 36" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 18 C 25 0, 50 0, 75 18 S 125 36, 150 18 S 200 0, 225 18 S 275 36, 300 18 S 350 0, 375 18 S 425 36, 450 18 S 500 0, 525 18 S 575 36, 600 18" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+  </svg>
+  <div class="bar" role="progressbar" aria-label="Progression"><i id="prog"></i></div>
+  <div class="meta"><span id="count"></span><span id="pts"></span></div>
+  <section class="card" id="card" aria-live="polite"></section>
+</main>
+<script>
+const Q=[
+{p:"Qu’est-ce qu’une onde progressive ?",o:["Le déplacement de matière d’un point à un autre","La propagation d’une perturbation sans transport de matière","Une perturbation qui reste localisée en un point","Un phénomène qui n’existe que dans le vide"],c:1,h:"Pensez à une vague sur l’eau : le bouchon qui flotte avance-t-il avec la vague ?",e:"Une onde progressive transporte de l’énergie et de l’information, mais pas de matière : chaque point du milieu oscille autour de sa position d’équilibre."},
+{p:"Quelle est la relation entre la longueur d’onde λ, la célérité v et la période T ?",o:["λ = v × T","λ = v / T²","λ = T / v","λ = v + T"],c:0,h:"Distance = vitesse × durée, avec une durée égale à une période.",e:"La longueur d’onde est la distance parcourue par l’onde pendant une période : λ = v·T = v/N."},
+{p:"Une onde sinusoïdale a une fréquence N = 50 Hz. Quelle est sa période ?",o:["50 s","0,2 s","0,02 s","0,5 s"],c:2,h:"T et N sont inverses l’un de l’autre.",e:"T = 1/N = 1/50 = 0,02 s = 20 ms."},
+{p:"Une onde est dite sinusoïdale lorsque :",o:["Elle ne dure qu’un court instant","Sa vitesse varie de façon sinusoïdale","La grandeur qui la décrit varie sinusoïdalement avec le temps et l’espace","Elle se propage uniquement en ligne droite"],c:2,h:"Regardez la forme mathématique de y(x,t).",e:"Une onde sinusoïdale est périodique : la grandeur physique (élongation, pression, champ…) varie selon une fonction sinus ou cosinus du temps et de la position."},
+{p:"Une onde progressive se propage dans le sens des x croissants avec la célérité v. Si la source S (x = 0) a pour élongation y_S(t) = A·sin(ωt), quelle est l’élongation en un point M d’abscisse x ?",o:["y_M(t) = A·sin(ω(t + x/v))","y_M(t) = A·sin(ω(t − x/v))","y_M(t) = A·sin(ωt)·x/v","y_M(t) = A·sin(ωt − v/x)"],c:1,h:"M est atteint avec un retard par rapport à la source.",e:"Le point M reproduit le mouvement de la source avec un retard θ = x/v : y_M(t) = y_S(t − θ) = A·sin(ω(t − x/v))."},
+{p:"Deux points d’un milieu sont séparés par une distance égale à λ. Comment vibrent-ils l’un par rapport à l’autre ?",o:["En phase","En opposition de phase","En quadrature de phase","Ils ne vibrent pas de la même façon"],c:0,h:"Le déphasage vaut Δφ = 2π·d/λ.",e:"Deux points distants d’un multiple entier de λ vibrent en phase. En opposition de phase, la distance serait λ/2 (plus un multiple de λ)."},
+{p:"Deux points sont séparés de d = λ/2. Quel est leur déphasage ?",o:["0","π/2","π","2π"],c:2,h:"Appliquez Δφ = 2πd/λ.",e:"Δφ = 2π·d/λ = 2π × (1/2) = π : les deux points vibrent en opposition de phase."},
+{p:"On dit que l’onde présente une double périodicité. Lesquelles ?",o:["Périodicité temporelle (période T) et périodicité spatiale (longueur d’onde λ)","Périodicité de la fréquence et de la vitesse","Périodicité de l’amplitude et de l’énergie","Périodicité de la source et du récepteur"],c:0,h:"Une double périodicité : dans le temps et dans l’espace.",e:"En un point fixe, le mouvement se répète avec la période T ; à un instant fixe, l’aspect du milieu se répète tous les λ."},
+{p:"Une onde de célérité v = 340 m/s a une fréquence N = 680 Hz. Quelle est sa longueur d’onde ?",o:["2 m","0,5 m","231 200 m","0,2 m"],c:1,h:"λ = v/N.",e:"λ = v/N = 340 / 680 = 0,5 m."},
+{p:"Un point M est atteint par l’onde avec un retard θ = 0,05 s par rapport à la source. La célérité est v = 20 m/s. Quelle est la distance SM ?",o:["0,0025 m","400 m","1 m","0,25 m"],c:2,h:"θ = d/v, donc d = v × θ.",e:"Le retard vaut θ = SM/v, donc SM = v × θ = 20 × 0,05 = 1 m."}
+];
+let i=0,score=0,answers=[];
+const card=document.getElementById("card"),prog=document.getElementById("prog"),count=document.getElementById("count"),pts=document.getElementById("pts");
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+function render(){
+  const q=Q[i];
+  count.textContent="Question "+(i+1)+" sur "+Q.length;
+  pts.textContent="Score : "+score;
+  prog.style.width=(i/Q.length*100)+"%";
+  card.innerHTML='<p class="q">'+esc(q.p)+'</p><ul class="opts">'+
+    q.o.map((t,k)=>'<li><button class="opt" data-k="'+k+'">'+esc(t)+'</button></li>').join("")+
+    '</ul><p class="hint" id="hint"><button class="link" id="hbtn">Afficher l’indice</button></p><div id="fb"></div>';
+  card.querySelectorAll(".opt").forEach(b=>b.onclick=()=>answer(+b.dataset.k));
+  document.getElementById("hbtn").onclick=()=>{document.getElementById("hint").textContent="Indice : "+q.h};
+}
+
+function answer(k){
+  const q=Q[i],good=k===q.c;
+  if(good)score++;
+  answers.push(good);
+  card.querySelectorAll(".opt").forEach((b,n)=>{
+    b.disabled=true;
+    if(n===q.c)b.classList.add("ok");
+    else if(n===k)b.classList.add("ko");
+  });
+  pts.textContent="Score : "+score;
+  const last=i===Q.length-1;
+  document.getElementById("fb").innerHTML='<div class="fb '+(good?"ok":"ko")+'"><b>'+(good?"Bonne réponse.":"Pas tout à fait.")+'</b>'+esc(q.e)+'</div><button class="btn" id="next">'+(last?"Voir mon résultat":"Question suivante")+'</button>';
+  const n=document.getElementById("next");n.focus();
+  n.onclick=()=>{if(last)end();else{i++;render();}};
+}
+
+function end(){
+  prog.style.width="100%";
+  count.textContent="Terminé";
+  const m=score>=9?"Excellent, le cours est maîtrisé.":score>=7?"Très bien, quelques détails à revoir.":score>=5?"Correct, relisez les formules clés (λ = v·T, Δφ = 2πd/λ, θ = d/v).":"À retravailler : reprenez les définitions de T, λ et du retard.";
+  card.innerHTML='<p class="sub">Résultat final</p><div class="score">'+score+' / '+Q.length+'</div><p>'+m+'</p><ul class="rev">'+
+    Q.map((q,n)=>'<li><span class="t '+(answers[n]?"ok":"ko")+'">'+(answers[n]?"Juste":"Faux")+'</span> — '+esc(q.p)+'</li>').join("")+
+    '</ul><button class="btn" id="again">Recommencer</button>';
+  document.getElementById("again").onclick=()=>{i=0;score=0;answers=[];render();};
+}
+render();
+</script>
+</body>
+</html>

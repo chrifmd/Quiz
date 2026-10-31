@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz : interaction onde-matière</title>
+<style>
+:root{
+  --bg:#f3f7f9; --surface:#ffffff; --ink:#0f2a3d; --muted:#5a7283; --line:#d3e0e8;
+  --accent:#0b7f8c; --accent-ink:#ffffff; --ok:#1c7a46; --ok-bg:#e3f4ea; --ko:#b3261e; --ko-bg:#fbe9e7;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0c1a24; --surface:#13283a; --ink:#e6f0f5; --muted:#92abbb; --line:#27435a;
+  --accent:#4fc3d1; --accent-ink:#062129; --ok:#6fd49a; --ok-bg:#12382a; --ko:#ff9d94; --ko-bg:#401c19; color-scheme:dark;}
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;line-height:1.55;min-height:100vh}
+main{max-width:640px;margin:0 auto;padding:28px 18px 60px}
+h1{font-size:1.7rem;line-height:1.2;margin:0 0 6px;font-weight:700}
+.sub{color:var(--muted);margin:0 0 18px;font-family:system-ui,sans-serif;font-size:.95rem}
+.fig{display:block;width:100%;height:64px;margin:0 0 18px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.meta{display:flex;justify-content:space-between;font-family:system-ui,sans-serif;font-size:.85rem;color:var(--muted);margin:8px 0 18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px}
+.q{font-size:1.2rem;margin:0 0 16px;font-weight:600}
+.opts{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.opt{width:100%;text-align:left;font:inherit;font-size:1rem;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:12px 14px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:focus-visible,.btn:focus-visible,.link:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.opt.ok{background:var(--ok-bg);border-color:var(--ok)}
+.opt.ko{background:var(--ko-bg);border-color:var(--ko)}
+.opt:disabled{cursor:default}
+.hint{font-family:system-ui,sans-serif;font-size:.9rem;color:var(--muted);margin:14px 0 0}
+.link{background:none;border:0;padding:0;font:inherit;font-family:system-ui,sans-serif;font-size:.9rem;color:var(--accent);text-decoration:underline;cursor:pointer}
+.fb{margin-top:16px;padding:12px 14px;border-radius:8px;font-family:system-ui,sans-serif;font-size:.95rem}
+.fb.ok{background:var(--ok-bg)} .fb.ko{background:var(--ko-bg)}
+.fb b{display:block;margin-bottom:2px}
+.btn{margin-top:18px;font:inherit;font-family:system-ui,sans-serif;font-weight:600;background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:11px 20px;cursor:pointer}
+.score{font-size:3rem;font-weight:700;margin:4px 0}
+.rev{margin:18px 0 0;padding:0;list-style:none;font-family:system-ui,sans-serif;font-size:.92rem}
+.rev li{padding:8px 0;border-top:1px solid var(--line)}
+.rev .t{font-weight:700}.rev .t.ok{color:var(--ok)}.rev .t.ko{color:var(--ko)}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Interaction onde-matière</h1>
+  <p class="sub">10 questions : diffraction, réflexion et réfraction des ondes mécaniques et lumineuses.</p>
+  <svg class="fig" viewBox="0 0 600 64" preserveAspectRatio="none" aria-hidden="true">
+    <line x1="0" y1="32" x2="600" y2="32" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <path d="M0 14 L300 32 L600 52" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+    <path d="M300 32 L420 6" fill="none" stroke="var(--accent)" stroke-width="2.5" opacity=".45"/>
+  </svg>
+  <div class="bar" role="progressbar" aria-label="Progression"><i id="prog"></i></div>
+  <div class="meta"><span id="count"></span><span id="pts"></span></div>
+  <section class="card" id="card" aria-live="polite"></section>
+</main>
+<script>
+const Q=[
+{p:"Dans quel cas observe-t-on le phénomène de diffraction ?",o:["Lorsqu’une onde change de fréquence en changeant de milieu","Lorsqu’une onde rencontre une ouverture ou un obstacle dont la dimension est comparable ou inférieure à sa longueur d’onde","Lorsqu’une onde rebondit sur une surface plane","Uniquement lorsque l’onde traverse un prisme"],c:1,h:"La diffraction dépend du rapport entre la taille de l’ouverture et λ.",e:"La diffraction est l’étalement d’une onde lorsqu’elle traverse une ouverture ou rencontre un obstacle de dimension comparable ou inférieure à λ. Elle concerne toutes les ondes, mécaniques comme lumineuses."},
+{p:"Dans une cuve à ondes, des vagues de longueur d’onde λ = 2 cm rencontrent une ouverture de largeur a = 1 cm. Que se passe-t-il ?",o:["Les vagues continuent en ligne droite sans changement","Les vagues sont stoppées net","Les vagues sont diffractées : elles se propagent en cercles derrière l’ouverture","Les vagues changent de fréquence"],c:2,h:"Comparez a et λ.",e:"Ici a < λ : la diffraction est très marquée et l’ouverture se comporte comme une nouvelle source circulaire. La fréquence, imposée par la source, ne change pas."},
+{p:"Un laser de longueur d’onde λ = 633 nm éclaire une fente de largeur a = 0,10 mm. Quel est l’écart angulaire θ du faisceau diffracté (θ = λ/a) ?",o:["6,33 × 10⁻³ rad","6,33 × 10⁻⁶ rad","0,158 rad","1,58 × 10² rad"],c:0,h:"Convertissez λ et a en mètres avant de diviser.",e:"θ = λ/a = 633 × 10⁻⁹ / 1,0 × 10⁻⁴ = 6,33 × 10⁻³ rad (soit environ 0,36°)."},
+{p:"On diminue la largeur de la fente éclairée par un laser. Comment évolue la tache centrale de diffraction sur l’écran ?",o:["Elle s’élargit","Elle rétrécit","Elle reste identique","Elle disparaît toujours"],c:0,h:"Dans θ = λ/a, que devient θ quand a diminue ?",e:"θ = λ/a : plus a est petit, plus θ est grand, donc plus la tache centrale est large."},
+{p:"Que dit la loi de la réflexion ?",o:["L’angle de réflexion est égal à l’angle d’incidence, et le rayon réfléchi reste dans le plan d’incidence","L’angle de réflexion est toujours de 90°","Le rayon réfléchi est dévié vers la normale","L’angle de réflexion est proportionnel à la longueur d’onde"],c:0,h:"Les angles sont mesurés par rapport à la normale à la surface.",e:"Loi de Snell-Descartes pour la réflexion : i₁ = i₁′, avec le rayon réfléchi dans le plan d’incidence."},
+{p:"Lorsqu’une onde passe d’un milieu à un autre (réfraction), quelle grandeur reste inchangée ?",o:["La célérité","La longueur d’onde","La fréquence","La direction de propagation"],c:2,h:"La fréquence est imposée par la source.",e:"La fréquence (donc la période) ne change pas. Comme λ = v/f, la célérité et la longueur d’onde varient, ce qui dévie l’onde."},
+{p:"Quelle est la loi de la réfraction de Snell-Descartes ?",o:["n₁ · i₁ = n₂ · i₂","n₁ · sin i₁ = n₂ · sin i₂","sin i₁ / n₁ = n₂ / sin i₂","n₁ · cos i₁ = n₂ · cos i₂"],c:1,h:"Ce sont les sinus des angles qui interviennent.",e:"n₁ · sin i₁ = n₂ · sin i₂, où n est l’indice de réfraction du milieu et i l’angle avec la normale."},
+{p:"Un verre a pour indice de réfraction n = 1,5. Quelle est la célérité de la lumière dans ce verre (c = 3,0 × 10⁸ m/s) ?",o:["2,0 × 10⁸ m/s","4,5 × 10⁸ m/s","3,0 × 10⁸ m/s","1,5 × 10⁸ m/s"],c:0,h:"n = c / v.",e:"v = c / n = 3,0 × 10⁸ / 1,5 = 2,0 × 10⁸ m/s. La lumière est plus lente dans le verre que dans le vide."},
+{p:"Un rayon lumineux passe de l’air (n = 1,00) à l’eau (n = 1,33) avec un angle d’incidence de 45°. Quel est l’angle de réfraction ?",o:["Environ 32°","45°","Environ 60°","Environ 28°"],c:0,h:"sin i₂ = (n₁ / n₂) · sin i₁.",e:"sin i₂ = sin 45° / 1,33 ≈ 0,707 / 1,33 ≈ 0,532, donc i₂ ≈ 32°. Le rayon se rapproche de la normale en entrant dans un milieu plus réfringent."},
+{p:"Un rayon passe du verre (n = 1,5) vers l’air (n = 1,0). À partir de quel angle d’incidence y a-t-il réflexion totale ?",o:["Environ 41,8°","Environ 48,2°","Environ 33,7°","90°"],c:0,h:"À l’angle limite, l’angle réfracté vaut 90° : sin i_lim = n₂ / n₁.",e:"sin i_lim = 1,0 / 1,5 ≈ 0,667, donc i_lim ≈ 41,8°. Au-delà, il n’y a plus de rayon réfracté : c’est la réflexion totale, utilisée dans les fibres optiques."}
+];
+let i=0,score=0,answers=[];
+const card=document.getElementById("card"),prog=document.getElementById("prog"),count=document.getElementById("count"),pts=document.getElementById("pts");
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+function render(){
+  const q=Q[i];
+  count.textContent="Question "+(i+1)+" sur "+Q.length;
+  pts.textContent="Score : "+score;
+  prog.style.width=(i/Q.length*100)+"%";
+  card.innerHTML='<p class="q">'+esc(q.p)+'</p><ul class="opts">'+
+    q.o.map((t,k)=>'<li><button class="opt" data-k="'+k+'">'+esc(t)+'</button></li>').join("")+
+    '</ul><p class="hint" id="hint"><button class="link" id="hbtn">Afficher l’indice</button></p><div id="fb"></div>';
+  card.querySelectorAll(".opt").forEach(b=>b.onclick=()=>answer(+b.dataset.k));
+  document.getElementById("hbtn").onclick=()=>{document.getElementById("hint").textContent="Indice : "+q.h};
+}
+
+function answer(k){
+  const q=Q[i],good=k===q.c;
+  if(good)score++;
+  answers.push(good);
+  card.querySelectorAll(".opt").forEach((b,n)=>{
+    b.disabled=true;
+    if(n===q.c)b.classList.add("ok");
+    else if(n===k)b.classList.add("ko");
+  });
+  pts.textContent="Score : "+score;
+  const last=i===Q.length-1;
+  document.getElementById("fb").innerHTML='<div class="fb '+(good?"ok":"ko")+'"><b>'+(good?"Bonne réponse.":"Pas tout à fait.")+'</b>'+esc(q.e)+'</div><button class="btn" id="next">'+(last?"Voir mon résultat":"Question suivante")+'</button>';
+  const n=document.getElementById("next");n.focus();
+  n.onclick=()=>{if(last)end();else{i++;render();}};
+}
+
+function end(){
+  prog.style.width="100%";
+  count.textContent="Terminé";
+  const m=score>=9?"Excellent, le cours est maîtrisé.":score>=7?"Très bien, quelques détails à revoir.":score>=5?"Correct, relisez les formules clés (θ = λ/a, n = c/v, n₁ sin i₁ = n₂ sin i₂).":"À retravailler : reprenez les définitions de la diffraction, de la réflexion et de la réfraction.";
+  card.innerHTML='<p class="sub">Résultat final</p><div class="score">'+score+' / '+Q.length+'</div><p>'+m+'</p><ul class="rev">'+
+    Q.map((q,n)=>'<li><span class="t '+(answers[n]?"ok":"ko")+'">'+(answers[n]?"Juste":"Faux")+'</span> — '+esc(q.p)+'</li>').join("")+
+    '</ul><button class="btn" id="again">Recommencer</button>';
+  document.getElementById("again").onclick=()=>{i=0;score=0;answers=[];render();};
+}
+render();
+</script>
+</body>
+</html>

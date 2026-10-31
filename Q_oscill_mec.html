@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz : oscillations mécaniques du pendule élastique horizontal</title>
+<style>
+:root{
+  --bg:#f6f5f1; --surface:#ffffff; --ink:#26221b; --muted:#6f685a; --line:#ddd8cb;
+  --accent:#a3460f; --accent-ink:#ffffff; --ok:#1c7a46; --ok-bg:#e3f4ea; --ko:#b3261e; --ko-bg:#fbe9e7;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#1a1612; --surface:#26201a; --ink:#f0e9dd; --muted:#b0a590; --line:#443b2f;
+  --accent:#f0a66b; --accent-ink:#2a1405; --ok:#6fd49a; --ok-bg:#12382a; --ko:#ff9d94; --ko-bg:#401c19; color-scheme:dark;}
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;line-height:1.55;min-height:100vh}
+main{max-width:640px;margin:0 auto;padding:28px 18px 60px}
+h1{font-size:1.7rem;line-height:1.2;margin:0 0 6px;font-weight:700}
+.sub{color:var(--muted);margin:0 0 18px;font-family:system-ui,sans-serif;font-size:.95rem}
+.spring{display:block;width:100%;height:40px;margin:0 0 18px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.meta{display:flex;justify-content:space-between;font-family:system-ui,sans-serif;font-size:.85rem;color:var(--muted);margin:8px 0 18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px}
+.q{font-size:1.2rem;margin:0 0 16px;font-weight:600}
+.opts{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.opt{width:100%;text-align:left;font:inherit;font-size:1rem;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:12px 14px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:focus-visible,.btn:focus-visible,.link:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.opt.ok{background:var(--ok-bg);border-color:var(--ok)}
+.opt.ko{background:var(--ko-bg);border-color:var(--ko)}
+.opt:disabled{cursor:default}
+.hint{font-family:system-ui,sans-serif;font-size:.9rem;color:var(--muted);margin:14px 0 0}
+.link{background:none;border:0;padding:0;font-family:system-ui,sans-serif;font-size:.9rem;color:var(--accent);text-decoration:underline;cursor:pointer}
+.fb{margin-top:16px;padding:12px 14px;border-radius:8px;font-family:system-ui,sans-serif;font-size:.95rem}
+.fb.ok{background:var(--ok-bg)} .fb.ko{background:var(--ko-bg)}
+.fb b{display:block;margin-bottom:2px}
+.btn{margin-top:18px;font-family:system-ui,sans-serif;font-size:1rem;font-weight:600;background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:11px 20px;cursor:pointer}
+.score{font-size:3rem;font-weight:700;margin:4px 0}
+.rev{margin:18px 0 0;padding:0;list-style:none;font-family:system-ui,sans-serif;font-size:.92rem}
+.rev li{padding:8px 0;border-top:1px solid var(--line)}
+.rev .t{font-weight:700}.rev .t.ok{color:var(--ok)}.rev .t.ko{color:var(--ko)}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Pendule élastique horizontal</h1>
+  <p class="sub">10 questions : oscillations libres, amorties et forcées, résonance.</p>
+  <svg class="spring" viewBox="0 0 600 40" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 20 H60 L75 4 L100 36 L125 4 L150 36 L175 4 L200 36 L225 4 L250 36 L275 4 L300 36 L315 20 H400" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+    <rect x="400" y="6" width="56" height="28" rx="3" fill="var(--accent)"/>
+  </svg>
+  <div class="bar" role="progressbar" aria-label="Progression"><i id="prog"></i></div>
+  <div class="meta"><span id="count"></span><span id="pts"></span></div>
+  <section class="card" id="card" aria-live="polite"></section>
+</main>
+<script>
+const Q=[
+{p:"Un solide de masse m, fixé à un ressort horizontal de raideur k, oscille sans frottement. Quelle est l’équation différentielle de son mouvement (x = élongation) ?",o:["d²x/dt² + (k/m)·x = 0","d²x/dt² − (k/m)·x = 0","d²x/dt² + (m/k)·x = 0","dx/dt + (k/m)·x = 0"],c:0,h:"Appliquez la deuxième loi de Newton : la seule force horizontale est la tension du ressort, T = −k·x.",e:"m·a = −k·x donne m·d²x/dt² + k·x = 0, soit d²x/dt² + (k/m)·x = 0. C’est l’équation d’un oscillateur harmonique."},
+{p:"Quelle est l’expression de la période propre T₀ de ce pendule ?",o:["T₀ = 2π·√(k/m)","T₀ = 2π·√(m/k)","T₀ = (1/2π)·√(k/m)","T₀ = 2π·m/k"],c:1,h:"Plus la masse est grande, plus l’oscillation est lente.",e:"La pulsation propre est ω₀ = √(k/m), donc T₀ = 2π/ω₀ = 2π·√(m/k)."},
+{p:"On multiplie la masse du solide par 4 sans changer le ressort. Que devient la période propre ?",o:["Elle est multipliée par 4","Elle est multipliée par 2","Elle est divisée par 2","Elle ne change pas"],c:1,h:"T₀ est proportionnelle à √m.",e:"T₀ = 2π·√(m/k) est proportionnelle à √m. Avec m × 4, T₀ est multipliée par √4 = 2."},
+{p:"Un ressort de raideur k = 20 N/m porte un solide de masse m = 0,50 kg. Quelle est la fréquence propre N₀ ?",o:["0,16 Hz","1,0 Hz","6,3 Hz","40 Hz"],c:1,h:"Calculez d’abord ω₀ = √(k/m), puis N₀ = ω₀/2π.",e:"ω₀ = √(20/0,50) = √40 ≈ 6,3 rad/s, donc N₀ = ω₀/2π ≈ 1,0 Hz."},
+{p:"Quelle est la solution de l’équation différentielle de l’oscillateur libre non amorti ?",o:["x(t) = Xm·sin(ω₀t + φ)","x(t) = Xm·e^(−ω₀t)","x(t) = Xm·ω₀·t + φ","x(t) = Xm·sin(ω₀t)/t"],c:0,h:"La solution est sinusoïdale, de pulsation ω₀ = √(k/m).",e:"x(t) = Xm·sin(ω₀t + φ). L’amplitude Xm et la phase initiale φ dépendent des conditions initiales (position et vitesse à t = 0)."},
+{p:"Un oscillateur libre non amorti a une amplitude Xm = 0,050 m et une raideur k = 40 N/m. Quelle est son énergie mécanique ?",o:["0,05 J","0,10 J","1,0 J","2,0 J"],c:0,h:"En x = Xm, la vitesse est nulle : l’énergie est entièrement potentielle élastique.",e:"Em = ½·k·Xm² = ½ × 40 × (0,050)² = 0,05 J. Cette énergie reste constante en l’absence de frottement."},
+{p:"Avec un frottement fluide faible, comment se comporte le pendule (oscillations libres amorties) ?",o:["L’amplitude reste constante","L’amplitude décroît au cours du temps (régime pseudo-périodique)","Le pendule s’arrête dès la première oscillation","La fréquence devient infinie"],c:1,h:"Les frottements dissipent de l’énergie sous forme de chaleur.",e:"L’énergie mécanique diminue, donc l’amplitude décroît. Le régime est pseudo-périodique, de pseudo-période T légèrement supérieure à T₀. Un frottement très fort donne un régime apériodique."},
+{p:"Un pendule élastique amorti est relié à un excitateur qui impose une fréquence N. En régime permanent, à quelle fréquence oscille le solide ?",o:["À sa fréquence propre N₀","À la fréquence N de l’excitateur","À une fréquence égale à N₀ + N","À une fréquence nulle"],c:1,h:"Le régime transitoire disparaît au bout d’un certain temps.",e:"En régime permanent, le résonateur est contraint de vibrer à la fréquence N de l’excitateur, quelle que soit sa fréquence propre N₀."},
+{p:"Dans quelle situation observe-t-on la résonance d’élongation (amortissement faible) ?",o:["Lorsque N est très supérieure à N₀","Lorsque N est très inférieure à N₀","Lorsque la fréquence N de l’excitateur est voisine de la fréquence propre N₀","Lorsque l’amortissement est très grand"],c:2,h:"L’amplitude des oscillations passe par un maximum.",e:"La résonance se produit lorsque N est voisine de N₀ : l’amplitude du résonateur passe alors par un maximum et le transfert d’énergie de l’excitateur est optimal."},
+{p:"Que se passe-t-il à la résonance lorsqu’on augmente l’amortissement (frottements plus importants) ?",o:["L’amplitude à la résonance augmente","L’amplitude à la résonance diminue et la résonance devient plus floue","La fréquence propre devient nulle","La résonance disparaît toujours totalement"],c:1,h:"Les frottements dissipent de l’énergie.",e:"Plus l’amortissement est fort, plus le maximum d’amplitude est faible et plus la courbe de résonance est aplatie (résonance floue). Avec un amortissement faible, la résonance est aiguë."}
+];
+let i=0,score=0,answers=[];
+const card=document.getElementById("card"),prog=document.getElementById("prog"),count=document.getElementById("count"),pts=document.getElementById("pts");
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+function render(){
+  const q=Q[i];
+  count.textContent="Question "+(i+1)+" sur "+Q.length;
+  pts.textContent="Score : "+score;
+  prog.style.width=(i/Q.length*100)+"%";
+  card.innerHTML='<p class="q">'+esc(q.p)+'</p><ul class="opts">'+
+    q.o.map((t,k)=>'<li><button class="opt" data-k="'+k+'">'+esc(t)+'</button></li>').join("")+
+    '</ul><p class="hint" id="hint"><button class="link" id="hbtn">Afficher l’indice</button></p><div id="fb"></div>';
+  card.querySelectorAll(".opt").forEach(b=>b.onclick=()=>answer(+b.dataset.k));
+  document.getElementById("hbtn").onclick=()=>{document.getElementById("hint").textContent="Indice : "+q.h};
+}
+
+function answer(k){
+  const q=Q[i],good=k===q.c;
+  if(good)score++;
+  answers.push(good);
+  card.querySelectorAll(".opt").forEach((b,n)=>{
+    b.disabled=true;
+    if(n===q.c)b.classList.add("ok");
+    else if(n===k)b.classList.add("ko");
+  });
+  pts.textContent="Score : "+score;
+  const last=i===Q.length-1;
+  document.getElementById("fb").innerHTML='<div class="fb '+(good?"ok":"ko")+'"><b>'+(good?"Bonne réponse.":"Pas tout à fait.")+'</b>'+esc(q.e)+'</div><button class="btn" id="next">'+(last?"Voir mon résultat":"Question suivante")+'</button>';
+  const n=document.getElementById("next");n.focus();
+  n.onclick=()=>{if(last)end();else{i++;render();}};
+}
+
+function end(){
+  prog.style.width="100%";
+  count.textContent="Terminé";
+  const m=score>=9?"Excellent, le cours est maîtrisé.":score>=7?"Très bien, quelques détails à revoir.":score>=5?"Correct, relisez les formules clés (T₀ = 2π√(m/k), Em = ½kXm²).":"À retravailler : reprenez l’équation différentielle et la résonance.";
+  card.innerHTML='<p class="sub">Résultat final</p><div class="score">'+score+' / '+Q.length+'</div><p>'+m+'</p><ul class="rev">'+
+    Q.map((q,n)=>'<li><span class="t '+(answers[n]?"ok":"ko")+'">'+(answers[n]?"Juste":"Faux")+'</span> — '+esc(q.p)+'</li>').join("")+
+    '</ul><button class="btn" id="again">Recommencer</button>';
+  document.getElementById("again").onclick=()=>{i=0;score=0;answers=[];render();};
+}
+render();
+</script>
+</body>
+</html>
